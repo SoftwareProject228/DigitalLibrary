@@ -1,0 +1,35 @@
+version: "2.4"
+
+services:
+  # backend:
+  #   image: dl-backend
+  #   build: ./backend/
+  #   environment:
+  #     DATABASE_URL: mongodb://db # Change me please
+  #   ports:
+  #     - 80:5000 # @lexa_small, change exposes in backend dockerfile
+  #   links:
+  #     - db
+  #   depends_on:
+  #     - db
+
+  frontend:
+    image: dl-frontend
+    build: ./frontend/
+    environment:
+      PORT: 8000
+    ports:
+      - 8000:8000
+   # links:
+   #   - backend
+   # depends_on:
+   #   - backend
+
+  db:
+    image: mongo:latest # Change me please
+    container_name: dl-db
+    volumes:
+      - dl-db:/data/db
+
+volumes:
+  dl-db:
