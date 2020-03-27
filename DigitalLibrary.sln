@@ -7,7 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DigitalLibrary", "DigitalLi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DatabaseControl", "DatabaseControl\DatabaseControl.csproj", "{3E7637BE-CD02-467E-A537-6F9207804671}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedLibrary", "SharedLibrary\SharedLibrary.csproj", "{9695E7FA-372A-47E2-8DCF-4160B05E8F88}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharedLibrary", "SharedLibrary\SharedLibrary.csproj", "{9695E7FA-372A-47E2-8DCF-4160B05E8F88}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Backend", "Backend", "{EC83F351-4EA3-41A7-96D9-3DE6C740561A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Frontend", "Frontend", "{45E84B9E-FC36-4535-B258-E7648BFD43AF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,6 +34,11 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{05F9E140-CF5A-4A15-9674-25BF3F5E119C} = {EC83F351-4EA3-41A7-96D9-3DE6C740561A}
+		{3E7637BE-CD02-467E-A537-6F9207804671} = {EC83F351-4EA3-41A7-96D9-3DE6C740561A}
+		{9695E7FA-372A-47E2-8DCF-4160B05E8F88} = {EC83F351-4EA3-41A7-96D9-3DE6C740561A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1B009DF6-325A-4939-8D98-9BBBAD2A038E}
