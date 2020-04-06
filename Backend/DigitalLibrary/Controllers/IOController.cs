@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using DigitalLibrary.Context;
+using DigitalLibrary.Security;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -16,6 +17,13 @@ namespace DigitalLibrary.Controllers
         [HttpPost]
 	    public async Task<IActionResult> UploadFile()
 	    {
+		    var token = Request.Headers["token"][0];
+		    var validation = await UserWebTokenFactory.CheckTokenValidation(token);
+		    if (validation != UserWebToken.TokenValidation.Valid)
+		    {
+			    return BadRequest(validation);
+		    }
+
 		    var fileName = Request.Headers["filename"][0];
 
 		    var path = Path.Combine(Environment.CurrentDirectory, "files");
@@ -29,7 +37,8 @@ namespace DigitalLibrary.Controllers
 			{
 				FileName = fileName,
 				Weight = stream.Length,
-				LocalPath = path
+				LocalPath = path,
+				UserToken = token
 			};
 
 			var filesCollection = MongoConnection.GetCollection<AttachedFile>("files");
@@ -44,11 +53,15 @@ namespace DigitalLibrary.Controllers
 		[HttpPost]
 	    public async Task<IActionResult> UploadPost([FromBody] WallPost post)
 	    {
+		    var token = Request.Headers["token"][0];
+		    var validation = await UserWebTokenFactory.CheckTokenValidation(token);
+		    if (validation != UserWebToken.TokenValidation.Valid)
+			    return BadRequest(validation);
+
 		    var postCollection = MongoConnection.GetCollection<WallPost>("posts");
-		    await postCollection.InsertOneAsync(post);
+		    post.UserToken = token;
+		    postCollection.InsertOneAsync(post);
 		    return Ok();
 	    }
-
-
     }
 }

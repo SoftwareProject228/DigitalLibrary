@@ -18,6 +18,8 @@ namespace SharedLibrary.Models
 
 		public List<string> Tags { get; set; }
 
+		public string UserToken { get; set; }
+
 		public List<AttachedFile> AttachedFiles { get; set; }
 	}
 }

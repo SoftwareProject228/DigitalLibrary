@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using DigitalLibrary.Properties;
 using MongoDB.Driver;
 
 namespace DigitalLibrary.Context
@@ -14,8 +15,7 @@ namespace DigitalLibrary.Context
 			get
 			{
 				if (_database == null)
-					_database = new MongoClient(
-							@"mongodb+srv://DigitalLibrary:23081975@mongospace-1jtjh.azure.mongodb.net/test?retryWrites=true&w=majority")
+					_database = new MongoClient(Resource.MongoDBConnectionString)
 						.GetDatabase("digital_library_storage");
 				_collections = new Dictionary<string, object>();
 				return _database;
