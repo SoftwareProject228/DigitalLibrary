@@ -13,5 +13,7 @@ namespace SharedLibrary.Models
 		public long Weight { get; set; }
 
 		public string LocalPath { get; set; }
+
+		public string UserToken { get; set; }
 	}
 }

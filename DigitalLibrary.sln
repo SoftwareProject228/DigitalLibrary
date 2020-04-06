@@ -10,11 +10,11 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharedLibrary", "Backend\SharedLibrary\SharedLibrary.csproj", "{9695E7FA-372A-47E2-8DCF-4160B05E8F88}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Backend", "Backend", "{EC83F351-4EA3-41A7-96D9-3DE6C740561A}"
-	ProjectSection(SolutionItems) = preProject
-		TextFile1.txt = TextFile1.txt
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Frontend", "Frontend", "{45E84B9E-FC36-4535-B258-E7648BFD43AF}"
+	ProjectSection(SolutionItems) = preProject
+		This is frontend.txt = This is frontend.txt
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
