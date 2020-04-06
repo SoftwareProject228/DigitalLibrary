@@ -8,13 +8,13 @@ body {
   font: .875em/1.6 'Inconsolata', monospace;
   color: #fff; /*Colour of introduction text*/
   font-weight: 400;/*шрифт/font style*/
-  padding: 0em;/*distance between objects*/
+  padding: 0;/*distance between objects*/
 }
 ::selection{
   background: #808080/*colour for the part of the document that has been selected by the user*/
 }
 p{
-  margin-bottom:0em;/*Distance from the bottom edge of an element.*/
+  margin-bottom:0;/*Distance from the bottom edge of an element.*/
 }
 /*design of login block*/
 input[type="text"]{
@@ -44,7 +44,7 @@ input[type="password"]:focus{
   outline:none;
 }
 /*for text before input block*/
-.registration {
+.login {
   display: block;/*Makes span behave like blocks - has line break at the beginning and at the end of the content.*/
   max-width: 20em;/*max width of block*/
   color: #fff;
