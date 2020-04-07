@@ -9,8 +9,8 @@ namespace DigitalLibrary.Security.Models
 		public enum UserStatus
 		{
 			Student,
-			Moderator,
-			Professor
+			Professor,
+			Moderator
 		}
 
 		[BsonId]

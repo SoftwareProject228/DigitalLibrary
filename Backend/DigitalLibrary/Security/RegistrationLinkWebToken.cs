@@ -2,19 +2,13 @@
 using System.Security.Cryptography;
 using System.Text;
 using DigitalLibrary.Properties;
+using DigitalLibrary.Security.Models;
 using Newtonsoft.Json;
 
 namespace DigitalLibrary.Security
 {
-	public class UserWebToken
+	public class RegistrationLinkWebToken
 	{
-		public enum TokenValidation
-		{
-			Valid,
-			Expired,
-			Invalid
-		}
-
 		private static string Base64UrlEncode(byte[] input)
 		{
 			var output = Convert.ToBase64String(input);
@@ -47,7 +41,7 @@ namespace DigitalLibrary.Security
 
 		private string CreateToken()
 		{
-			var secret = Encoding.UTF8.GetBytes(Resource.UserWebTokenSecret);
+			var secret = Encoding.UTF8.GetBytes(Resource.RegistrationLinkWebTokenSecret);
 			var header = new JWTHead
 			{
 				Algorithm = Algorithm,
@@ -55,9 +49,12 @@ namespace DigitalLibrary.Security
 				ExpiresAt = ExpiresAt,
 				Application = Application
 			};
-			var payload = new UserPayload
+			var payload = new RegistrationLinkPayload
 			{
-				UserId = UserId
+				UserName = UserName,
+				Email = Email,
+				OwnerUserId = OwnerUserId,
+				Status = Status
 			};
 
 			var headerBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(header));
@@ -75,7 +72,7 @@ namespace DigitalLibrary.Security
 			return stringsToSign + '.' + signature;
 		}
 
-		private static UserWebToken ResolveToken(string token)
+		private static RegistrationLinkWebToken ResolveToken(string token)
 		{
 			var parts = token.Split('.');
 			var header = parts[0];
@@ -86,12 +83,12 @@ namespace DigitalLibrary.Security
 			var payloadJson = Encoding.UTF8.GetString(Base64UrlDecode(payload));
 
 			var headerData = JsonConvert.DeserializeObject<JWTHead>(headerJson);
-			var payloadData = JsonConvert.DeserializeObject<UserPayload>(payloadJson);
+			var payloadData = JsonConvert.DeserializeObject<RegistrationLinkPayload>(payloadJson);
 
 			if (headerData.Algorithm != "SHA256")
 				throw new Exception("Unknown hashing algorithm");
 			var bytesToSign = Encoding.UTF8.GetBytes(header + '.' + payload);
-			var secret = Encoding.UTF8.GetBytes(Resource.UserWebTokenSecret);
+			var secret = Encoding.UTF8.GetBytes(Resource.RegistrationLinkWebTokenSecret);
 
 			var signature = new HMACSHA256(secret).ComputeHash(bytesToSign);
 
@@ -103,13 +100,16 @@ namespace DigitalLibrary.Security
 				throw new ApplicationException("Invalid signature");
 			}
 
-			var jwt = new UserWebToken
+			var jwt = new RegistrationLinkWebToken
 			{
 				Algorithm = headerData.Algorithm,
 				ExpiresAt = headerData.ExpiresAt,
 				Host = headerData.Host,
 				Application = headerData.Application,
-				UserId = payloadData.UserId
+				Email = payloadData.Email,
+				UserName = payloadData.UserName,
+				OwnerUserId = payloadData.OwnerUserId,
+				Status = payloadData.Status
 			};
 
 			return jwt;
@@ -121,11 +121,20 @@ namespace DigitalLibrary.Security
 		private string _host;
 		private DateTime _expiresAt;
 		private string _application;
-		private string _userId;
+		private string _userName;
+		private string _email;
+		private string _ownerUserId;
+		private User.UserStatus _status;
 
-		public static UserWebToken FromToken(string token)
+		public User.UserStatus Status
 		{
-			return ResolveToken(token);
+			get => _status;
+			set
+			{
+				if (_status == value) return;
+				_status = value;
+				_dataChanged = true;
+			}
 		}
 
 		public string Algorithm
@@ -152,8 +161,7 @@ namespace DigitalLibrary.Security
 
 		public DateTime ExpiresAt
 		{
-			get => _expiresAt;
-			set
+			get => _expiresAt;set
 			{
 				if (_expiresAt == value) return;
 				_expiresAt = value;
@@ -164,21 +172,43 @@ namespace DigitalLibrary.Security
 		public string Application
 		{
 			get => _application;
-			set
-			{
+			set 
+			{ 
 				if (_application == value) return;
 				_application = value;
 				_dataChanged = true;
 			}
 		}
 
-		public string UserId
+		public string UserName
 		{
-			get => _userId;
+			get => _userName;
 			set
 			{
-				if (_userId == value) return;
-				_userId = value;
+				if (_userName == value) return;
+				_userName = value;
+				_dataChanged = true;
+			}
+		}
+
+		public string Email
+		{
+			get => _email;
+			set
+			{
+				if (_email == value) return;
+				_email = value;
+				_dataChanged = true;
+			}
+		}
+
+		public string OwnerUserId
+		{
+			get => _ownerUserId;
+			set
+			{
+				if (_ownerUserId == value) return;
+				_ownerUserId = value;
 				_dataChanged = true;
 			}
 		}
@@ -190,7 +220,13 @@ namespace DigitalLibrary.Security
 				if (!_dataChanged) return _token;
 				_token = CreateToken();
 				return _token;
+
 			}
+		}
+
+		public static RegistrationLinkWebToken FromToken(string token)
+		{
+			return ResolveToken(token);
 		}
 	}
 }
