@@ -120,6 +120,9 @@
   <data name="MongoDBConnectionString" xml:space="preserve">
     <value>mongodb+srv://DigitalLibrary:23081975@mongospace-1jtjh.azure.mongodb.net/test?retryWrites=true&amp;w=majority</value>
   </data>
+  <data name="RegistrationLinkWebTokenSecret" xml:space="preserve">
+    <value>qwerttydgjnth;['/p;o.li,k umjyfvtd98g7d0fsguijdkflgsdhjedsiugbizuds hgs0etuw 7ye7ry80z9rduhs98jo</value>
+  </data>
   <data name="UserWebTokenSecret" xml:space="preserve">
     <value>gdkfjgdjgklsgjkdfls;g8fg9sdfgsjkflrtfvgbu8m9,;plo,kmijnubmkarinaftgyhuj</value>
   </data>

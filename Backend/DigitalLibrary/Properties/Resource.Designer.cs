@@ -70,6 +70,15 @@ namespace DigitalLibrary.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to qwerttydgjnth;[&apos;/p;o.li,k umjyfvtd98g7d0fsguijdkflgsdhjedsiugbizuds hgs0etuw 7ye7ry80z9rduhs98jo.
+        /// </summary>
+        internal static string RegistrationLinkWebTokenSecret {
+            get {
+                return ResourceManager.GetString("RegistrationLinkWebTokenSecret", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to gdkfjgdjgklsgjkdfls;g8fg9sdfgsjkflrtfvgbu8m9,;plo,kmijnubmkarinaftgyhuj.
         /// </summary>
         internal static string UserWebTokenSecret {

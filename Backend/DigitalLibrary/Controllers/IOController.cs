@@ -18,8 +18,8 @@ namespace DigitalLibrary.Controllers
 	    public async Task<IActionResult> UploadFile()
 	    {
 		    var token = Request.Headers["token"][0];
-		    var validation = await UserWebTokenFactory.CheckTokenValidation(token);
-		    if (validation != UserWebToken.TokenValidation.Valid)
+		    var validation = await UserWebTokenFactory.CheckTokenValidationAsync(token);
+		    if (validation.Validation != UserWebToken.TokenValidation.Valid)
 		    {
 			    return BadRequest(validation);
 		    }
@@ -36,7 +36,7 @@ namespace DigitalLibrary.Controllers
 			var attachedFile = new AttachedFile
 			{
 				FileName = fileName,
-				Weight = stream.Length,
+				Lenght = stream.Length,
 				LocalPath = path,
 				UserToken = token
 			};
@@ -54,8 +54,8 @@ namespace DigitalLibrary.Controllers
 	    public async Task<IActionResult> UploadPost([FromBody] WallPost post)
 	    {
 		    var token = Request.Headers["token"][0];
-		    var validation = await UserWebTokenFactory.CheckTokenValidation(token);
-		    if (validation != UserWebToken.TokenValidation.Valid)
+		    var validation = await UserWebTokenFactory.CheckTokenValidationAsync(token);
+		    if (validation.Validation != UserWebToken.TokenValidation.Valid)
 			    return BadRequest(validation);
 
 		    var postCollection = MongoConnection.GetCollection<WallPost>("posts");

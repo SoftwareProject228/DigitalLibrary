@@ -38,7 +38,7 @@ namespace DigitalLibrary.Security
 			return (await tokenCollection.FindAsync(filter)).ToList();
 		}
 
-		public static async Task<UserWebToken.TokenValidation> CheckTokenValidation(string token)
+		public static async Task<UserWebTokenValidation> CheckTokenValidationAsync(string token)
 		{
 			UserWebToken userToken;
 			try
@@ -47,18 +47,46 @@ namespace DigitalLibrary.Security
 			}
 			catch
 			{
-				return UserWebToken.TokenValidation.Invalid;
+				return null;
 			}
+
+			var userCollection = MongoConnection.GetCollection<User>("users");
+			var foundUsers = await userCollection.FindAsync(new BsonDocument("_id", new ObjectId(userToken.UserId)));
+			var foundUser = await foundUsers.FirstOrDefaultAsync();
+			if (foundUser == null) return null;
+
+			var validation = new UserWebTokenValidation
+			{
+				UserName = foundUser.UserName,
+				UserStatus = foundUser.Status,
+				ExpiresAt = userToken.ExpiresAt
+			};
 
 			var tokenFilterBuilder = Builders<AuthorizationToken>.Filter;
 			var tokenFilter = tokenFilterBuilder.Eq("Token", userToken.Token);
 
 			var tokenCollection = MongoConnection.GetCollection<AuthorizationToken>("authorization_tokens");
 			var foundTokens = await tokenCollection.FindAsync(tokenFilter);
-			if (foundTokens.ToList().Count == 0) return UserWebToken.TokenValidation.Invalid;
+			if (foundTokens.ToList().Count == 0)
+			{
+				validation.Validation = UserWebToken.TokenValidation.Invalid;
+				return validation;
+			}
 
-			if (userToken.ExpiresAt > DateTime.Now) return UserWebToken.TokenValidation.Valid;
-			return UserWebToken.TokenValidation.Expired;
+			if (userToken.ExpiresAt > DateTime.Now)
+			{
+				validation.Validation = UserWebToken.TokenValidation.Valid;
+				return validation;
+			}
+
+			validation.Validation = UserWebToken.TokenValidation.Expired;
+			return validation;
+		}
+
+		public static async Task DeleteTokenAsync(string token)
+		{
+			var tokenCollection = MongoConnection.GetCollection<AuthorizationToken>("authorization_tokens");
+			await tokenCollection.DeleteOneAsync(new BsonDocument("Token", token));
 		}
     }
 }
