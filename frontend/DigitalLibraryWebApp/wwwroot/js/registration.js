@@ -77,7 +77,8 @@
 })(jQuery);
 
 // Handler for .ready() - event will be triggered only after the entire page is formed
-$(document).ready(function() {
+$(document).ready(function () {
+    $("#submit_bt").prop("disabled", true);
     $(".email").hide();
     $(".name").hide();
     $(".login").hide();
@@ -115,19 +116,8 @@ $(document).ready(function() {
                                     $(".password").fadeIn(); // .fadeIn();//element .command appear through 400 ms
                                     $("#password")
                                         .focus(); //The focused element is the element which will receive keyboard and similar events by default
-                                    $("#password").keyup(function(e) {
-                                        //if second enter was pressed
-                                        if (e.which == 13) {
-                                            var password = $("#password").val(); //Gets the value of the value attribute
-                                            console.log(password);
-                                            //POST REQUEST
-                                            $.post('/api/authorization/login',
-                                                { 'email': email, 'name': name, 'login': login, 'password': password },
-                                                function(data) {
-                                                    $("#registration_form").html(data);
-                                                });
-                                        }
-                                    });
+                                    $("#password");
+                                    $("#submit_bt").prop("disabled", false);
                                 }
                             });
 
