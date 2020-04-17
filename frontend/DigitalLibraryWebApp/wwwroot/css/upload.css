@@ -1,0 +1,74 @@
+@import url(https://fonts.googleapis.com/css?family=Inconsolata:400,700);
+
+html {
+  background: #000;/*colour of the background*/
+  overflow-y: scroll;
+}
+/*general settings*/
+body {
+  font: .875em/1.6 'Inconsolata', monospace;
+  color: #fff; /*Colour of introduction text*/
+  font-weight: 400;/*шрифт/font style*/
+  padding: 0em;/*distance between objects*/
+}
+::selection{
+  background: #A9A9A9/*colour for the part of the document that has been selected by the user*/
+}
+p{
+  margin-bottom:1em;/*Distance from the bottom edge of an element.*/
+}
+/*settings for text before name block*/
+.name_text{
+  font-family: inherit;
+  font-weight: 700;
+}
+/*design of name block*/
+input[type="text"]{
+  border: none;
+  font-family: inherit;
+  background: #000;
+  padding:0 .5em;/*tab before block*/
+  font-weight: 400;
+}
+/*for text in input block*/
+input[type="text"]:focus{
+  background: #000; /*this is for colour of input block*/
+  color: #fff;
+  outline:none;
+  font-weight: 400;
+}
+/*settings for text before upload block*/
+.upload_text{
+  font-family: inherit;
+  font-weight: 700;
+}
+/* container for text before upload block */
+.upload_file_wrapper{
+  display: flex;
+  justify-content: left;
+  align-items: center;
+}
+/* design for uppload button */
+.upload_button{
+  /* text style */
+  font-family: inherit;
+  font-weight: 300;
+  font-size: 86%;
+  color: #696969;
+  /* block style */
+  border: none;
+  max-width:50em;
+  margin-left: 13px;
+  width: 100%;
+}
+/* hide standard view of uppload button */
+.upload_button .filupp > input[type="file"]{
+  position:absolute;
+  width:1px;
+  height:1px;
+  padding:0;
+  margin:-1px;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+  border:0
+}

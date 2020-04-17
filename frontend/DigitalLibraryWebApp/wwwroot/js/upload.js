@@ -2,9 +2,6 @@
  * jQuery CLI
  * Simulating a command line interface with jQuery
  */
-var destination_password;
-var destination_login;
-
 (function(e){
   "use strict";
   e.fn.textTyper=function(t){
@@ -76,39 +73,33 @@ var destination_login;
 
 // Handler for .ready() - event will be triggered only after the entire page is formed
 $(document).ready(function() {
-  $('.login_text').hide();
-  $('.password_text').hide();
-  $('#login_page').textTyper({
+  $('.name_text').hide();
+  $('.upload_text').hide();
+  $('.filupp-file-name').hide();
+  $('#upload_message').textTyper({
     speed:20,
     afterAnimation:function(){
 
-      $('.login_text').fadeIn();// .fadeIn();//element .command appear through 400 ms
-      $('#login_text').focus();//The focused element is the element which will receive keyboard and similar events by default
-      $('#login_text').keydown(function(e){
+      $('.name_text').fadeIn();// .fadeIn();//element .command appear through 400 ms
+      $('#name_text').focus();//The focused element is the element which will receive keyboard and similar events by default
+      $('#name_text').keydown(function(e){
         //if enter was pressed
         if(e.which == 13){
-          destination_login = $('#login_text').val();//Gets the value of the value attribute
-          console.log(destination_login)
+          e.preventDefault();
+          name = $('#name_text').val();//Gets the value of the value attribute
+          console.log(name)
 
-          $('.password_text').fadeIn();// .fadeIn();//element .command appear through 400 ms
-          $('#password_text').focus();//The focused element is the element which will receive keyboard and similar events by default
-          $('#password_text').keyup(function(e){
-            //if second enter was pressed
-            if(e.which == 13){
-              destination_password = $('#password_text').val();//Gets the value of the value attribute
-              console.log(destination_password)
-              //POST REQUEST
-              $.post('/api/authorization/login', {'login': destination_login, 'password' : destination_password},
-              function(data) {
-                  $('#login_form').html(data);
-              });
-            }
+          $('.upload_text').fadeIn();// .fadeIn();//element .command appear through 400 ms
+          $('.filupp-file-name').fadeIn();// .fadeIn();//element .command appear through 400 ms
+          $('input[type="file"]').change(function(){
+              var value = $("input[type='file']").val();
+              $('.js-value').text(value);
           });
-
         }
       });
-
     }
   });
+
+
 
 });

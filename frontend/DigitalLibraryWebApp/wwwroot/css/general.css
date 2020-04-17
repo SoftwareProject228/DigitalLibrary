@@ -11,7 +11,7 @@ body {
   padding: 1em;/*distance between objects*/
 }
 ::selection{
-  background: #808080/*colour for the part of the document that has been selected by the user*/
+  background: #A9A9A9/*colour for the part of the document that has been selected by the user*/
 }
 p{
   margin-bottom:2em;/*Distance from the bottom edge of an element.*/
@@ -20,6 +20,9 @@ abbr{
   cursor: help;/*Sets the shape of the cursor when it is within an element an and delete tabs before list*/
 }
 ul{
+  padding: 0;/*no tab before lists of commands*/
+}
+ol{
   padding: 0;/*no tab before lists of commands*/
 }
 h2{
