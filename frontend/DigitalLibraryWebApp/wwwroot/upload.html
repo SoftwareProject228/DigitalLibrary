@@ -21,9 +21,9 @@
   <p>You have an unique opportunity to leave a mark on history and upload your material to this library.</p>
   </section>
 
-  <form name="upload" id="upload" enctype="multipart/form-data" method="post">
+  <form name="upload" id="upload" enctype="multipart/form-data" method="post" autocomplete="off">
     <div class="book_name">
-      <span class="name_text">Login:/$</span>
+      <span class="name_text">Name:/$</span>
       <input id="name_text" class="name_text" type="text" placeholder="name">
     </div>
 
@@ -32,11 +32,15 @@
 
       <div class="upload_button">
         <label for="custom-file-upload" class="filupp">
-          <span class="filupp-file-name js-value">klick here</span>
+          <span class="filupp-file-name js-value">click here</span>
           <input type="file" name="attachment-file" value="1" id="custom-file-upload">
+          <a type="submit" class="button_to_upload">upload</a>
         </label>
       </div>
     </div>
+
+
+
   </form>
 
   </main>

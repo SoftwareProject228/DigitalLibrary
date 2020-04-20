@@ -76,6 +76,7 @@ $(document).ready(function() {
   $('.name_text').hide();
   $('.upload_text').hide();
   $('.filupp-file-name').hide();
+  $('.button_to_upload').hide();
   $('#upload_message').textTyper({
     speed:20,
     afterAnimation:function(){
@@ -93,8 +94,11 @@ $(document).ready(function() {
           $('.filupp-file-name').fadeIn();// .fadeIn();//element .command appear through 400 ms
           $('input[type="file"]').change(function(){
               var value = $("input[type='file']").val();
-              $('.js-value').text(value);
+              $('.js-value').fadeOut(0).text(value).fadeIn(400, ()=>{
+                $('.button_to_upload').fadeIn(400);
+              });
           });
+          // After the user push the "upload button" info should go to the server
         }
       });
     }
