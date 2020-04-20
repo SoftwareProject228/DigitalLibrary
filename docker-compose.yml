@@ -1,0 +1,14 @@
+version: "2.4"
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - 80
+    restart: always
+
+  frontend:
+    build: ./frontend
+    ports:
+      - 8000:80
+    restart: always

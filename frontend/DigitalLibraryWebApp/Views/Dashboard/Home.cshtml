@@ -1,0 +1,50 @@
+﻿
+@{
+    ViewData["Title"] = "Home";
+}
+
+@section Scripts
+{
+    <link rel="stylesheet" href="~/css/general.css">
+    <script src="~/js/jquery-3.4.1.min.js"></script>
+    <script src="~/js/general.js"></script>
+}
+
+<section id="home">
+    <p>Welcome to the digital library "Vasilisa Premudraya".</p>
+    <p><span>Type 'help' + <kbd>Enter</kbd> -- for available commands.</span></p>
+</section>
+
+<section id="about">
+    <h2><span>&raquo;About</span></h2>
+    <p>This is the command line of the experiment "Vasilisa Premudraya". With a lot of luck, in this digital library you can find the books you need to learn.</p>
+</section>
+
+<section id="usage">
+    <p><span>&raquo;Usage</span></p>
+    <p>It is pretty straight forward, even your grandma can use it.</p>
+</section>
+
+<section id="library">
+    <p><span>&raquo;Library</span></p>
+    <p>Тут должен быть список всех доступных книг</p>
+</section>
+
+<section id="error">
+    <p>Command not found!<p>
+    <p><span>Type 'help' + <kbd>Enter</kbd> -- for available commands.</span></p>
+</section>
+
+<section id="help">
+    <p><span>&raquo;Help?</span></p>
+    <p><span>Type [command] + <kbd>Enter</kbd></span></p>
+    <ul>
+        <li>'home' -- Thats obvious!</li>
+        <li>'about' -- Where are you and what to do?</li>
+        <li>'usage' -- What to do?</li>
+        <li>'library' -- List of available books</li>
+        <li>'help' -- List of availale commands</li>
+    </ul>
+</section>
+
+<span class="command">Vasilisa:/$<input type="text"></span>
