@@ -1,0 +1,49 @@
+@import url(https://fonts.googleapis.com/css?family=Inconsolata:400,700);
+
+html {
+ background: #000;/*colour of the background*/
+ overflow-y: scroll;
+}
+/*general settings*/
+body {
+ font: .875em/1.6 'Inconsolata', monospace;
+ color: #fff; /*Colour of introduction text*/
+ font-weight: 400;/*шрифт/font style*/
+ padding: 0em;/*distance between objects*/
+}
+::selection{
+ background: #A9A9A9/*colour for the part of the document that has been selected by the user*/
+}
+p{
+ margin-bottom:1em;/*Distance from the bottom edge of an element.*/
+}
+/*settings for text before name block*/
+.name_text{
+ font-family: inherit;
+ font-weight: 700;
+}
+
+.books_list{
+  width: 45%;
+  display: flex;
+  flex-direction: column;
+}
+
+.books_list>li{
+  display: flex;
+  flex-basis: 45%;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.books_list>li>a{
+  transition: 0.3s all ease;
+  cursor: pointer;
+  color: #FFE4C4;
+}
+
+.books_list>li>a:hover{
+  text-decoration: underline;
+  color: #FFFFFF;
+  font-weight: 700;
+}
