@@ -3,13 +3,22 @@ using System.Collections.Generic;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace SharedLibrary.Models
+namespace DigitalLibrary.Model
 {
-	public class WallPost
+	public class CatalogNode
 	{
+		public enum WallPostStatus
+		{
+			Accepted,
+			Declined,
+			Reviewing,
+			Deleted
+		}
+
 		[BsonId]
 		[BsonRepresentation(BsonType.ObjectId)]
 		public string Id { get; set; }
+
 		public DateTime CreationTime { get; set; }
 
 		public string Title { get; set; }
@@ -18,7 +27,10 @@ namespace SharedLibrary.Models
 
 		public List<string> Tags { get; set; }
 
-		public string UserToken { get; set; }
+		[BsonRepresentation(BsonType.ObjectId)]
+		public string UserId { get; set; }
+
+		public WallPostStatus Status { get; set; }
 
 		public List<AttachedFile> AttachedFiles { get; set; }
 	}

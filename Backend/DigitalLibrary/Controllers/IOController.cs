@@ -2,11 +2,9 @@
 using System.IO;
 using System.Threading.Tasks;
 using DigitalLibrary.Context;
+using DigitalLibrary.Model;
 using DigitalLibrary.Security;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Bson;
-using MongoDB.Driver;
-using SharedLibrary.Models;
 
 namespace DigitalLibrary.Controllers
 {
@@ -17,14 +15,33 @@ namespace DigitalLibrary.Controllers
         [HttpPost]
 	    public async Task<IActionResult> UploadFile()
 	    {
+		    if (!Request.Headers.ContainsKey("token"))
+			    return Unauthorized(new UserAuthenticationResponse
+			    {
+				    AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.NotEnoughtHeaders
+			    });
+
 		    var token = Request.Headers["token"][0];
 		    var validation = await UserWebTokenFactory.CheckTokenValidationAsync(token);
-		    if (validation.Validation != UserWebToken.TokenValidation.Valid)
-		    {
-			    return BadRequest(validation);
-		    }
+		    if (validation == null || validation.Validation == UserWebToken.TokenValidation.Invalid)
+			    return BadRequest(new UserAuthenticationResponse
+			    {
+					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.InvalidToken
+			    });
+		    if (validation.Validation == UserWebToken.TokenValidation.Expired)
+			    return BadRequest(new UserAuthenticationResponse
+			    {
+				    UserName = validation.User.UserName,
+				    Email = validation.User.Email,
+				    UserStatus = validation.User.Status,
+				    Token = token,
+				    AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.TokenExpired
+			    });
 
-		    var fileName = Request.Headers["filename"][0];
+
+		    var fileName = Guid.NewGuid().ToString();
+			if (Request.Headers.ContainsKey("filename"))
+				fileName = Request.Headers["filename"][0];
 
 		    var path = Path.Combine(Environment.CurrentDirectory, "files");
 		    Directory.CreateDirectory(path);
@@ -38,27 +55,46 @@ namespace DigitalLibrary.Controllers
 				FileName = fileName,
 				Lenght = stream.Length,
 				LocalPath = path,
-				UserToken = token
+				UserId = validation.User.Id
 			};
 
-			var filesCollection = MongoConnection.GetCollection<AttachedFile>("files");
-			await filesCollection.InsertOneAsync(attachedFile);
-			var filter = new BsonDocument("LocalPath", path);
-			var found = await filesCollection.FindAsync(filter);
-			var writtenFile = found.ToList()[0];
-			attachedFile.Id = writtenFile.Id;
-			return Ok(attachedFile.Id);
+			var fileId = await FileContext.AddFileAsync(attachedFile);
+			return Ok(new NewFileResponse
+			{
+				FileId = fileId,
+				FileName = fileName,
+				FileLenght = attachedFile.Lenght
+			});
 	    }
 
 		[HttpPost]
 	    public async Task<IActionResult> UploadPost([FromBody] WallPost post)
 	    {
-		    var token = Request.Headers["token"][0];
-		    var validation = await UserWebTokenFactory.CheckTokenValidationAsync(token);
-		    if (validation.Validation != UserWebToken.TokenValidation.Valid)
-			    return BadRequest(validation);
+			if (!Request.Headers.ContainsKey("token"))
+				return Unauthorized(new UserAuthenticationResponse
+				{
+					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.NotEnoughtHeaders
+				});
 
-		    var postCollection = MongoConnection.GetCollection<WallPost>("posts");
+			var token = Request.Headers["token"][0];
+			var validation = await UserWebTokenFactory.CheckTokenValidationAsync(token);
+			if (validation == null || validation.Validation == UserWebToken.TokenValidation.Invalid)
+				return BadRequest(new UserAuthenticationResponse
+				{
+					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.InvalidToken
+				});
+			if (validation.Validation == UserWebToken.TokenValidation.Expired)
+				return BadRequest(new UserAuthenticationResponse
+				{
+					UserName = validation.User.UserName,
+					Email = validation.User.Email,
+					UserStatus = validation.User.Status,
+					Token = token,
+					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.TokenExpired
+				});
+
+
+			var postCollection = MongoConnection.GetCollection<WallPost>("posts");
 		    post.UserToken = token;
 		    postCollection.InsertOneAsync(post);
 		    return Ok();
