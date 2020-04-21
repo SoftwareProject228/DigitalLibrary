@@ -6,11 +6,11 @@ namespace DigitalLibrary.Security.Models
 {
 	public class User
 	{
-		public enum UserStatus
+		public static class UserStatus
 		{
-			Student,
-			Professor,
-			Moderator
+			public static string Student { get; } = "student";
+			public static string Professor { get; } = "professor";
+			public static string Moderator { get; } = "moderator";
 		}
 
 		[BsonId]
@@ -21,10 +21,13 @@ namespace DigitalLibrary.Security.Models
 
 		public string PasswordHash { get; set; }
 
-		public UserStatus Status { get; set; }
+		public string Status { get; set; }
 
 		public string Email { get; set; }
 
 		public List<string> AssociatedTags { get; set; }
+
+		[BsonRepresentation(BsonType.ObjectId)]
+		public string RegisteredByLink { get; set; }
 	}
 }

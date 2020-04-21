@@ -1,7 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace SharedLibrary.Models
+namespace DigitalLibrary.Model
 {
 	public class AttachedFile
 	{
@@ -14,6 +14,7 @@ namespace SharedLibrary.Models
 
 		public string LocalPath { get; set; }
 
-		public string UserToken { get; set; }
+		[BsonRepresentation(BsonType.ObjectId)]
+		public string UserId { get; set; }
 	}
 }

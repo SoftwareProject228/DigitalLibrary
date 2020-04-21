@@ -1,18 +1,16 @@
 ﻿using System;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using DigitalLibrary.Context;
+using DigitalLibrary.Model;
 using DigitalLibrary.Security;
 using DigitalLibrary.Security.Models;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Bson;
-using MongoDB.Driver;
 
 namespace DigitalLibrary.Controllers
 {
-    [Route("api/[controller]/[action]")]
+    [Route("api/auth/[action]")]
     [ApiController]
     public class AuthorizationController : ControllerBase
     {
@@ -21,9 +19,10 @@ namespace DigitalLibrary.Controllers
 	    {
 		    if (!Request.Headers.ContainsKey("username") || !Request.Headers.ContainsKey("password") ||
 		        !Request.Headers.ContainsKey("application"))
-		    {
-			    return BadRequest("Missing some arguments for authorization");
-		    }
+			    return BadRequest(new UserAuthenticationResponse
+			    {
+					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.NotEnoughtHeaders
+			    });
 
 		    var username = Request.Headers["username"][0];
 		    var password = Request.Headers["password"][0];
@@ -32,14 +31,21 @@ namespace DigitalLibrary.Controllers
 		    var passBytes = Encoding.UTF8.GetBytes(password);
 		    var passHashBytes = MD5.Create().ComputeHash(passBytes);
 		    var passHash = Convert.ToBase64String(passHashBytes);
-		    var userCollection = MongoConnection.GetCollection<User>("users");
 
-		    var builder = Builders<User>.Filter;
-		    var filter = builder.Eq("UserName", username) & builder.Eq("PasswordHash", passHash);
-		    var user = await (await userCollection.FindAsync(filter)).FirstOrDefaultAsync();
+		    var user = await UserContext.FindUserByNameAsync(username);
 
 		    if (user == null)
-			    return BadRequest("User not found");
+			    return BadRequest(new UserAuthenticationResponse
+			    {
+					UserName = username,
+					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.UserNotFound
+			    });
+		    if (user.PasswordHash != passHash)
+			    return BadRequest(new UserAuthenticationResponse
+			    {
+				    UserName = username,
+				    AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.IncorrectPassword
+			    });
 
 		    var userToken = new UserWebToken
 		    {
@@ -51,49 +57,71 @@ namespace DigitalLibrary.Controllers
 		    };
 
 			UserWebTokenFactory.AddTokenAsync(userToken);
-		    return Ok(userToken.Token);
+		    return Ok(new UserAuthenticationResponse
+		    {
+				UserName = user.UserName,
+				Email = user.Email,
+				Token = userToken.Token,
+				AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.Ok,
+				UserStatus = user.Status
+		    });
 	    }
 
 	    [HttpGet]
-	    public async Task<IActionResult> Logout()
+	    public IActionResult Logout()
 	    {
 		    if (!Request.Headers.ContainsKey("token"))
-			    return BadRequest("Missing argument: token");
+			    return BadRequest(new UserAuthenticationResponse
+			    {
+					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.NotEnoughtHeaders
+			    });
 
 		    var token = Request.Headers["token"][0];
 
-		    await UserWebTokenFactory.DeleteTokenAsync(token);
+		    UserWebTokenFactory.DeleteTokenAsync(token);
 		    return Ok();
-	    }
-
-		[HttpGet]
-	    public async Task<IActionResult> CheckToken()
-	    {
-		    if (!Request.Headers.ContainsKey("token"))
-			    return BadRequest("Missing argument: token");
-
-		    var token = Request.Headers["token"][0];
-		    var validation = await UserWebTokenFactory.CheckTokenValidationAsync(token);
-		    return Ok(validation);
 	    }
 
 		[HttpGet]
 	    public async Task<IActionResult> CreateLink()
 	    {
 		    if (!Request.Headers.ContainsKey("token"))
-			    return BadRequest("Missing argument: token");
+			    return BadRequest(new UserAuthenticationResponse
+			    {
+					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.NotEnoughtHeaders
+			    });
 
 		    var token = Request.Headers["token"][0];
 		    var validation = await UserWebTokenFactory.CheckTokenValidationAsync(token);
-		    if (validation == null || validation.Validation != UserWebToken.TokenValidation.Valid)
-			    return BadRequest(validation);
+		    if (validation == null || validation.Validation == UserWebToken.TokenValidation.Invalid)
+			    return BadRequest(new UserAuthenticationResponse
+			    {
+					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.InvalidToken
+			    });
+		    if (validation.Validation == UserWebToken.TokenValidation.Expired)
+			    return BadRequest(new UserAuthenticationResponse
+			    {
+				    UserName = validation.User.UserName,
+				    Email = validation.User.Email,
+				    UserStatus = validation.User.Status,
+				    Token = token,
+				    AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.TokenExpired
+			    });
 
-		    if (validation.UserStatus != Security.Models.User.UserStatus.Moderator)
-			    return Unauthorized(validation);
+		    if (validation.User.Status != Security.Models.User.UserStatus.Moderator)
+			    return Unauthorized(new UserAuthenticationResponse
+			    {
+					UserName = validation.User.UserName,
+					Email = validation.User.Email,
+					Token = token,
+					UserStatus = validation.User.Status,
+					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.AccessDenied
+			    });
 
-		    var status = 0;
+		    var status = Security.Models.User.UserStatus.Student;
+			
 		    if (Request.Headers.ContainsKey("status"))
-			    status = int.Parse(Request.Headers["status"][0]);
+			    status = Request.Headers["status"][0];
 		    var expiresAt = DateTime.MaxValue;
 			if (Request.Headers.ContainsKey("expiresAt"))
 				expiresAt = DateTime.Now.AddDays(int.Parse(Request.Headers["expiresAt"][0]));
@@ -104,47 +132,60 @@ namespace DigitalLibrary.Controllers
 			if (Request.Headers.ContainsKey("email"))
 				email = Request.Headers["email"][0];
 
-
 		    var userToken = UserWebToken.FromToken(token);
 
-		    var registrationLinkWebToken = new RegistrationLinkWebToken
+		    var linkId = await RegistrationLinkContext.AddLinkAsync(new RegistrationLink
 		    {
-			    Status = (User.UserStatus) status,
+			    Available = true,
 			    ExpiresAt = expiresAt,
-			    OwnerUserId = userToken.UserId,
-			    UserName = userName,
-			    Email = email,
-			    Host = "localhost",
-			    Algorithm = "SHA256",
-			    Application = userToken.Application
-		    };
+			    ForUserName = userName,
+			    ForEmail = email,
+			    ForUserStatus = status,
+			    CreaterUserId = userToken.UserId
+		    });
 
-		    RegistrationLinkWebTokenFactory.AddTokenAsync(registrationLinkWebToken, token);
-		    return Ok(registrationLinkWebToken.Token);
+		    return Ok(new RegistrationLinkResponse
+		    {
+				ForUserName = userName,
+				ForEmail = email,
+				ForUserStatus = status,
+				LinkToken = linkId,
+				ExpiresAt = expiresAt
+		    });
 	    }
 
 		[HttpGet]
 		public async Task<IActionResult> SignUp()
 		{
 			if (!Request.Headers.ContainsKey("linktoken"))
-				return BadRequest("Missing argument: linktoken");
+				return BadRequest(new RegistrationResponse
+				{
+					RegistrationStatus = RegistrationResponse.Status.NotEnoughtHeaders
+				});
 
-			var linkToken = Request.Headers["linktoken"];
-			if (!await RegistrationLinkWebTokenFactory.CheckAvailabilityAsync(linkToken))
-				return BadRequest("Token is not available");
+			var linkToken = Request.Headers["linktoken"][0];
+			var link = await RegistrationLinkContext.FindLinkByIdAsync(linkToken);
+			if (!link.Available || link.ExpiresAt < DateTime.Now)
+				return BadRequest(new RegistrationResponse
+				{
+					RegistrationStatus = RegistrationResponse.Status.TokenNotAvailable
+				});
 
 			if (!Request.Headers.ContainsKey("username") || !Request.Headers.ContainsKey("password") ||
-			    !Request.Headers.ContainsKey("email") || !Request.Headers.ContainsKey("application"))
-				return BadRequest("Missing some arguments");
-
-			var application = Request.Headers["application"][0];
+			    !Request.Headers.ContainsKey("email"))
+				return BadRequest(new RegistrationResponse
+				{
+					RegistrationStatus = RegistrationResponse.Status.NotEnoughtHeaders
+				});
 
 			var userName = Request.Headers["username"][0];
-
-			var userCollection = MongoConnection.GetCollection<User>("users");
-			var findResults = await userCollection.FindAsync(new BsonDocument("UserName", userName));
-			if (findResults.ToList().Count != 0)
-				return BadRequest("Username already taken");
+			var foundUser = await UserContext.FindUserByNameAsync(userName);
+			if (foundUser != null)
+				return BadRequest(new RegistrationResponse
+				{
+					UserName = userName,
+					RegistrationStatus = RegistrationResponse.Status.UserNameNotAvailable
+				});
 
 			var password = Request.Headers["password"][0];
 			var email = Request.Headers["email"][0];
@@ -154,44 +195,36 @@ namespace DigitalLibrary.Controllers
 			var passHashBytes = MD5.Create().ComputeHash(passBytes);
 			var passHash = Convert.ToBase64String(passHashBytes);
 
-			var registrationLink = RegistrationLinkWebToken.FromToken(linkToken);
-			var user = new User
+			await UserContext.AddUserAsync(new User
 			{
-				UserName = userName,
-				Email = email,
+				UserName = String.IsNullOrWhiteSpace(link.ForUserName) ? userName : link.ForUserName,
+				Email = String.IsNullOrWhiteSpace(link.ForEmail) ? email : link.ForEmail,
 				PasswordHash = passHash,
-				Status = registrationLink.Status,
-				AssociatedTags = null
-			};
-			await userCollection.InsertOneAsync(user);
+				Status = link.ForUserStatus,
+				AssociatedTags = null,
+				RegisteredByLink = link.Id
+			});
 
-			var justAddedUser = (await userCollection.FindAsync(new BsonDocument("UserName", userName))).ToList()
-				.First();
-
-			var userToken = new UserWebToken
+			RegistrationLinkContext.InvalidateLinkAsync(link.Id);
+			return Ok(new RegistrationResponse
 			{
-				Application = application,
-				UserId = justAddedUser.Id,
-				Host = "localhost",
-				Algorithm = "SHA256",
-				ExpiresAt = DateTime.Now.AddHours(1)
-			};
-
-			UserWebTokenFactory.AddTokenAsync(userToken);
-			RegistrationLinkWebTokenFactory.InvalidateLinkAsync(linkToken);
-			return Ok(userToken.Token);
+				UserName = String.IsNullOrWhiteSpace(link.ForUserName) ? userName : link.ForUserName,
+				Email = String.IsNullOrWhiteSpace(link.ForEmail) ? email : link.ForEmail,
+				UserStatus = link.ForUserStatus,
+				RegistrationStatus = RegistrationResponse.Status.Ok
+			});
 		}
 
 		[HttpGet]
 		public async Task<IActionResult> CheckLink()
 		{
 			if (!Request.Headers.ContainsKey("linktoken"))
-				return BadRequest("Missing argument: linktoken");
+				return BadRequest();
 
 			var linkToken = Request.Headers["linktoken"][0];
 
-			var check = await RegistrationLinkWebTokenFactory.CheckAvailabilityAsync(linkToken);
-			return Ok(check);
+			var link = await RegistrationLinkContext.FindLinkByIdAsync(linkToken);
+			return Ok(link);
 		}
     }
 }

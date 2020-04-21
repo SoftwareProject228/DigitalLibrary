@@ -57,8 +57,7 @@ namespace DigitalLibrary.Security
 
 			var validation = new UserWebTokenValidation
 			{
-				UserName = foundUser.UserName,
-				UserStatus = foundUser.Status,
+				User = foundUser,
 				ExpiresAt = userToken.ExpiresAt
 			};
 
