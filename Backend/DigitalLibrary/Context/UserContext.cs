@@ -24,5 +24,12 @@ namespace DigitalLibrary.Context
 			await Collection.InsertOneAsync(user);
 			return user.Id;
 		}
+
+		public static async Task<User> FindUserById(string id)
+		{
+			var result = await Collection.FindAsync(new BsonDocument("_id", id));
+			var user = await result.FirstOrDefaultAsync();
+			return user;
+		}
 	}
 }

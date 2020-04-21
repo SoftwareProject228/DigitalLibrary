@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using DigitalLibrary.Security.Models;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
@@ -27,8 +28,7 @@ namespace DigitalLibrary.Model
 
 		public List<string> Tags { get; set; }
 
-		[BsonRepresentation(BsonType.ObjectId)]
-		public string UserId { get; set; }
+		public User Publisher { get; set; }
 
 		public WallPostStatus Status { get; set; }
 
