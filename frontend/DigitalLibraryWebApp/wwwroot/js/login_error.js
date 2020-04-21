@@ -2,6 +2,9 @@
  * jQuery CLI
  * Simulating a command line interface with jQuery
  */
+var destination_password;
+var destination_login;
+
 (function(e){
   "use strict";
   e.fn.textTyper=function(t){
@@ -73,25 +76,39 @@
 
 // Handler for .ready() - event will be triggered only after the entire page is formed
 $(document).ready(function() {
+  $('.login_text').hide();
+  $('.password_text').hide();
+  $('#login_page').textTyper({
+    speed:20,
+    afterAnimation:function(){
 
-  $('.command').hide();
-  $('input[type="text"]').focus();//The focused element is the element which will receive keyboard and similar events by default
-  $('#home').addClass('open');
-  $('#home').textTyper({
-        speed:20,
-        afterAnimation:function(){
-          $('.command').fadeIn();//element .command appear through 400 ms
-          $('input[type="text"]').focus();//The focused element is the element which will receive keyboard and similar events by default
-          $('input[type="text"]').val('');//Gets the value of the value attribute
+      $('.login_text').fadeIn();// .fadeIn();//element .command appear through 400 ms
+      $('#login_text').focus();//The focused element is the element which will receive keyboard and similar events by default
+      $('#login_text').keydown(function(e){
+        //if enter was pressed
+        if(e.which == 13){
+          destination_login = $('#login_text').val();//Gets the value of the value attribute
+          console.log(destination_login)
+
+          $('.password_text').fadeIn();// .fadeIn();//element .command appear through 400 ms
+          $('#password_text').focus();//The focused element is the element which will receive keyboard and similar events by default
+          $('#password_text').keyup(function(e){
+            //if second enter was pressed
+            if(e.which == 13){
+              destination_password = $('#password_text').val();//Gets the value of the value attribute
+              console.log(destination_password)
+              //POST REQUEST
+              $.post('/api/authorization/login', {'login': destination_login, 'password' : destination_password},
+              function(data) {
+                  $('#login_form').html(data);
+              });
+            }
+          });
+
         }
-  });
+      });
 
-// Command Input------------------------------
-$('input[type="text"]').keyup(function(e){
-    if(e.which == 13){// ENTER key pressed
-      // тут сервер что-то делает
-    }// end if ENTER key pressed
-});// end keyup function
-// End Command Input-----------------------------
+    }
+  });
 
 });

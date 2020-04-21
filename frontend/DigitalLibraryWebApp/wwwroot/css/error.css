@@ -19,9 +19,6 @@ p{
 abbr{
   cursor: help;/*Sets the shape of the cursor when it is within an element an and delete tabs before list*/
 }
-ul{
-  padding: 0;/*no tab before lists of commands*/
-}
 ol{
   padding: 0;/*no tab before lists of commands*/
 }
@@ -47,7 +44,7 @@ input[type="text"]{
   font-family: inherit;
   background: #000;
   padding:0 .5em;/*tab before block*/
-  colour: #FFF;
+  color: #FFF;
 }
 /*for text in input block*/
 input[type="text"]:focus{

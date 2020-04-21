@@ -76,8 +76,8 @@ $(document).ready(function() {
 
   $('.command').hide();
   $('input[type="text"]').focus();//The focused element is the element which will receive keyboard and similar events by default
-  $('#home').addClass('open');
-  $('#home').textTyper({
+  $('#help').addClass('open');
+  $('#help').textTyper({
         speed:20,
         afterAnimation:function(){
           $('.command').fadeIn();//element .command appear through 400 ms
@@ -89,6 +89,7 @@ $(document).ready(function() {
 // Command Input------------------------------
 $('input[type="text"]').keyup(function(e){
     if(e.which == 13){// ENTER key pressed
+      $('.command').hide();
       // тут сервер что-то делает
     }// end if ENTER key pressed
 });// end keyup function
