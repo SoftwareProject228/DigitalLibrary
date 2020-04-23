@@ -75,40 +75,31 @@ var destination_login;
   return this}})(jQuery)
 
 // Handler for .ready() - event will be triggered only after the entire page is formed
-$(document).ready(function() {
-  $('.login_text').hide();
-  $('.password_text').hide();
-  $('#login_page').textTyper({
-    speed:20,
-    afterAnimation:function(){
+$(document).ready(function () {
+    $('#submit_bt').prop("disabled", true);
+    $('.login_text').hide();
+    $('.password_text').hide();
+    $('#login_page').textTyper({
+        speed:20,
+        afterAnimation:function(){
 
-      $('.login_text').fadeIn();// .fadeIn();//element .command appear through 400 ms
-      $('#login_text').focus();//The focused element is the element which will receive keyboard and similar events by default
-      $('#login_text').keydown(function(e){
-        //if enter was pressed
-        if(e.which == 13){
-          destination_login = $('#login_text').val();//Gets the value of the value attribute
-          console.log(destination_login)
+        $('.login_text').fadeIn();// .fadeIn();//element .command appear through 400 ms
+        $('#login_text').focus();//The focused element is the element which will receive keyboard and similar events by default
+        $('#login_text').keydown(function(e) {
+            //if enter was pressed
+            if (e.which == 13) {
+                $('#submit_bt').prop("disabled", false);
+                destination_login = $('#login_text').val(); //Gets the value of the value attribute
+                console.log(destination_login)
 
-          $('.password_text').fadeIn();// .fadeIn();//element .command appear through 400 ms
-          $('#password_text').focus();//The focused element is the element which will receive keyboard and similar events by default
-          $('#password_text').keyup(function(e){
-            //if second enter was pressed
-            if(e.which == 13){
-              destination_password = $('#password_text').val();//Gets the value of the value attribute
-              console.log(destination_password)
-              //POST REQUEST
-              $.post('/api/authorization/login', {'login': destination_login, 'password' : destination_password},
-              function(data) {
-                  $('#login_form').html(data);
-              });
+                $('.password_text').fadeIn(); // .fadeIn();//element .command appear through 400 ms
+                $('#password_text')
+                    .focus(); //The focused element is the element which will receive keyboard and similar events by
             }
-          });
 
+        });
         }
-      });
 
-    }
-  });
+    });
 
 });

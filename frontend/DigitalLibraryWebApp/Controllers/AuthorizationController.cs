@@ -22,19 +22,19 @@ namespace DigitalLibraryWebApp.Controllers
 		public async Task<IActionResult> Login(LoginViewModel vm)
 		{
 			if (string.IsNullOrWhiteSpace(vm.UserName) || string.IsNullOrWhiteSpace(vm.Password))
-				return View(vm);
+				return View("LoginError", vm);
 
 			var client = new HttpClient();
 			client.DefaultRequestHeaders.Add("username", vm.UserName);
 			client.DefaultRequestHeaders.Add("password", vm.Password);
 			client.DefaultRequestHeaders.Add("application", "digitallibrary://web_app");
-			var response = await client.GetAsync("https://localhost:44355/api/authorization/login");
+			var response = await client.GetAsync("https://localhost:44355/api/auth/login");
 			if (response.IsSuccessStatusCode)
 			{
 				Response.Cookies.Append("token", await response.Content.ReadAsStringAsync());
 				return RedirectToAction("Home", "Dashboard");
 			}
-			return View(vm);
+			return View("LoginError", vm);
 		}
 
 		[Route("signup/{linkToken?}")]
@@ -43,7 +43,6 @@ namespace DigitalLibraryWebApp.Controllers
 		{
 			if (String.IsNullOrWhiteSpace(linkToken))
 				return RedirectToAction("Login");
-			linkToken = linkToken.Replace("_", ".");
 			var client = new HttpClient();
 			client.DefaultRequestHeaders.Add("linktoken", linkToken);
 			var response = await client.GetAsync("https://localhost:44355/api/authorization/checklink");

@@ -1,0 +1,32 @@
+﻿@model CommandViewModel
+@{
+    ViewData["Title"] = "Library";
+}
+
+@section Scripts
+{
+    <link rel="stylesheet" href="~/css/library.css">
+    <script src="~/js/jquery-3.4.1.min.js"></script>
+    <script src="~/js/library.js"></script>
+}
+
+<main>
+
+    <!-- Тут должен быть  коннект с сервером -->
+    <section id="library">
+        <p><span>&raquo;Library</span></p>
+        <ol>
+            <li>networks</li>
+            <li>linear algebra</li>
+            <li>analitical geometry</li>
+        </ol>
+    </section>
+
+    <form method="post">
+        <span class="command">Vasilisa:/$
+            <input name ="CommandR" type="text">
+            <input type="submit" hidden>
+        </span>
+    </form>
+
+</main>
