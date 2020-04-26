@@ -1,97 +1,141 @@
-/*!
- * jQuery CLI
- * Simulating a command line interface with jQuery
- */
-(function(e){
-  "use strict";
-  e.fn.textTyper=function(t){
-    var n={typingClass:"typing",
-    beforeAnimation:function(){},
-    afterAnimation:function(){},
-    speed:10,
-    nextLineDelay:400,
-    startsFrom:0,
-    repeatAnimation:false,
-    repeatDelay:4e3,
-    repeatTimes:1,
-    cursorHtml:'<span class="cursor">|</span>'
-  },
-  r=e.extend({},n,t);
-  this.each(function(){
-    var t=e(this),
-    n=1,
-    i="typingCursor";
-    var s=t,
-    o=s.length,
-    u=[];
-    while(o--){
-      u[o]=e.trim(e(s[o]).html());
-      e(s[o]).html("")
+// Output to Console
+function output(print) {
+  var cmd = $('.console-input').val();
+  console.log(cmd);
+  if(cmd==""){cmd="<span style='opacity:0;'>...</span>";}
+  $("#outputs").append("<span class='output-cmd-pre'>User:/$</span><span class='output-cmd'>" + cmd + "</span>");
+
+  $.each(print, function(index, value) {
+    cmd = "Vasya";
+    cmd += ":/$";
+    if (value == "") {
+      value = "&nbsp;";
     }
-    t.init=function(e){
-      var n=r.beforeAnimation;
-      if(n)n();
-      t.animate(0)
-    };
-    t.animate=function(o){
-      var a=s[o],
-      f=r.typingClass,
-      l=r.startsFrom;
-      e(a).addClass(f);
-      var c=setInterval(function(){
-        var f=r.cursorHtml;
-        f=e("<div>").append(e(f).addClass(i)).html();
-        e(a).html(u[o].substr(0,l)+f);
-        l++;
-        if(u[o].length<l){
-          clearInterval(c);
-          o++;
-          if(s[o]){
-            setTimeout(function(){
-              e(a).html(u[o-1]);
-              t.animate(o)
-            },
-            r.nextLineDelay)
-          }else{
-            e(a).find("."+i).remove();
-            if(r.repeatAnimation&&(r.repeatTimes==0||n<r.repeatTimes)){
-              setTimeout(function(){
-                t.animate(0);
-                n++
-              },
-              r.repeatDelay)
-            }else{
-              var h=r.afterAnimation;
-              if(h)h()
-            }
-          }
-        }
-      },r.speed)};
-    t.init()
-  });
-  return this}})(jQuery)
-
-// Handler for .ready() - event will be triggered only after the entire page is formed
-$(document).ready(function() {
-
-  $('.command').hide();
-  $('input[type="text"]').focus();//The focused element is the element which will receive keyboard and similar events by default
-  $('#home').addClass('open');
-  $('#home').textTyper({
-        speed:20,
-        afterAnimation:function(){
-          $('.command').fadeIn();//element .command appear through 400 ms
-          $('input[type="text"]').focus();//The focused element is the element which will receive keyboard and similar events by default
-          $('input[type="text"]').val('');//Gets the value of the value attribute
-        }
+    $("#outputs").append("<span class='output-text-pre'>" + cmd + "</span><span class='output-text'>" + value + "</span>");
   });
 
-// Command Input------------------------------
-$('input[type="text"]').keyup(function(e){
-    if(e.which == 13){// ENTER key pressed
-      // тут сервер что-то делает
-    }// end if ENTER key pressed
-});// end keyup function
-// End Command Input-----------------------------
+  $('.console-input').val("");
+  //$('.console-input').focus();
+  $("html, body").animate({
+    scrollTop: $(document).height()
+  }, 300);
+}
 
+function add(value, cmd) {
+  cmd += ":/$";
+  if (value == "") {
+    value = "&nbsp;";
+  }
+  $("#outputs").append("<span class='output-text-pre'>" + cmd + "</span><span class='output-text'>" + value + "</span>");
+}
+
+function uploading(print) {
+  var cmd = $('.console-input').val();
+  console.log(cmd);
+  if(cmd==""){cmd="<span style='opacity:0;'>...</span>";}
+  $("#outputs").append("<span class='output-cmd-pre'>User:/$</span><span class='output-cmd'>" + cmd + "</span>");
+
+  add(print[0], "Vasya");
+  add(print[1], "Name");
+  add(print[2], "Upload");
+
+  $('.console-input').val("");
+  //$('.console-input').focus();
+  $("html, body").animate({
+    scrollTop: $(document).height()
+  }, 300);
+}
+
+// Break Value
+var newLine = "<br/> &nbsp;";
+
+// User Commands
+var cmds = {
+
+  "reset": function() {
+    window.location.replace(location.href);
+  },
+
+  "clear": function() {
+    $("#outputs").html("");
+  },
+
+  "help": function() {
+
+    var print = ["Commands:"];
+    print = $.merge(print, Object.keys(cmds));
+
+    output(print);
+  },
+
+  "about": function() {
+    var print = ["This is the command line of the experiment 'Vasilisa Premudraya'. With a lot of luck, in this digital library you can find the books you need to learn."];
+    output(print);
+  },
+
+// Form to submit to server
+  "upload": function() {
+    var print = ["You have an unique opportunity to leave a mark on history and upload your material to this library.",
+      "<form action=\"\"><input type=\"text\" class=\"form-input\" placeholder=\"type name of the file...\" required/>",
+      "<input name=\"myFile\" type=\"file\" id=\"file\" class=\"inputfile\" required><label for=\"file\" id=\"fileLabel\">Choose file</label><input type=\"submit\" id=\"fileSubmit\" value=\"Submit\"></form>"
+    ];
+    uploading(print);
+    let input = $('#file');
+    input.on('change', (e) => {
+      if( this.files && this.files.length > 1 )
+        fileName = ( this.getAttribute( 'data-multiple-caption' ) || '' ).replace( '{count}', this.files.length );
+      else
+        fileName = e.target.value.split('\\').pop();
+
+      if( fileName )
+        $( '#fileLabel' ).html(fileName);
+
+    });
+  },
+
+  "library": function() {
+    var print = ["<p class=\"book_list\">NAME FROM SERVER <a href=\"LINK FROM SERVER\">Download</a> </p>",
+      "<p class=\"book_list\">NAME FROM SERVER <a href=\"LINK FROM SERVER\">Download</a> </p>"];
+    output(print);
+  },
+
+  "delete": function() {
+    var print = ["<p class=\"book_list\">NAME FROM SERVER <a class=\"delete_button\">Delete</a> </p>",
+      "<p class=\"book_list\">NAME FROM SERVER <a class=\"delete_button\">Delete</a> </p>"];
+    output(print);
+    deleted = $('.delete_button');
+    deleted.on('click', (e) =>{
+      console.log($(e.target).parent());
+      parent = $($($(e.target).parent()).parent());
+      parent.prev().detach();
+      parent.detach();
+      // $($(e.target).parent()).detach();
+    });
+  },
+
+};
+
+// Starting message
+$('.console-input').val("start");
+  var print = ["Welcome to the digital library 'Vasilisa Premudraya'. Type 'help' + ENTER -- for available commands."];
+  output(print);
+
+// Get User Command
+$('.console-input').on('keypress', function(event) {
+  if (event.which === 13) {
+    var str = $(this).val();
+    var data = str.split(' '); data.shift(); data = data.join(' ');
+    var cmd = str.split(' ')[0];
+
+    if (typeof cmds[cmd] == 'function') {
+      if(cmds[cmd].length > 0) {
+        cmds[cmd](data);
+      } else {
+        cmds[cmd]();
+      }
+    } else {
+      output(["Command not found: '" + cmd + "'", "Use '/help' for list of commands."]);
+    }
+    $(this).val("");
+  }
 });

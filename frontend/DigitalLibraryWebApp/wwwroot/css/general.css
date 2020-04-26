@@ -1,71 +1,120 @@
 @import url(https://fonts.googleapis.com/css?family=Inconsolata:400,700);
+
 html {
   background: #000;/*colour of the background*/
   overflow-y: scroll;
+  min-height: 100%;
 }
-/*general settings*/
+
 body {
+  min-height: 100%;
   font: .875em/1.6 'Inconsolata', monospace;
   color: #fff; /*Colour of introduction text*/
   font-weight: 400;/*шрифт/font style*/
   padding: 1em;/*distance between objects*/
 }
-::selection{
-  background: #A9A9A9/*colour for the part of the document that has been selected by the user*/
+
+li {
+    list-style-type: none; /* Убираем маркеры */
 }
-p{
-  margin-bottom:2em;/*Distance from the bottom edge of an element.*/
-}
-abbr{
-  cursor: help;/*Sets the shape of the cursor when it is within an element an and delete tabs before list*/
-}
-ul{
-  padding: 0;/*no tab before lists of commands*/
-}
-ol{
-  padding: 0;/*no tab before lists of commands*/
-}
-h2{
-  font-size: 1em;
-  font-weight: 400;
-}
-span{
-  display: block;/*Makes span behave like blocks - has line break at the beginning and at the end of the content.*/
-  color:#FFE4C4;/*Span colour*/
-  line-height:1;/*space between two inline elements*/
-}
-/*to create borders around the words*/
-kbd{
-  font-family: 'Inconsolata', monospace;
-  border:1px solid #999;
-  text-transform: uppercase;
-  padding:0 .2em;
-}
-/*for input block*/
-input[type="text"]{
+
+.form-input, .console-input, .books_list {
+  background-color: transparent;
   border: none;
-  font-family: inherit;
-  background: #000;
-  padding:0 .5em;/*tab before block*/
-  colour: #FFF;
-}
-/*for text in input block*/
-input[type="text"]:focus{
-  background: #000; /*this is for colour of input block*/
+  outline: none;
   color: #fff;
-  outline:none;
+  margin: 0;
+  padding: 0;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
-/*for text before input block*/
-.command{
-  display: block;/*Makes span behave like blocks - has line break at the beginning and at the end of the content.*/
-  max-width: 20em;/*max width of block*/
-  color: #fff;
-  font-weight: 700;/*шрифт/font style*/
-  margin: 2em 0;/*Distance from the border of the current element to the inner border of its parent element*/
-}
-section{
-  display: none;/*do not display all in one page*/
-}
-.open{
+
+.console-label, .output-cmd-pre, .output-text-pre {
+  width: 4em;
+  margin-right: 0.5em;
   display: block;
+  vertical-align: bottom;
+  font-weight: 600 !important; /*for USER:/$*/
+  text-align: right;
+  float: left;
+  clear: left;
+}
+
+.console-label, .output-cmd-pre {
+  color: #FF9F40; /*colour for USER:/$*/
+}
+
+.output-text-pre {
+  color: #35C0CD; /*colour for VASILISA:/$*/
+  font-weight: 600 !important;
+}
+
+span, input {
+  font: .875em/1.6 'Inconsolata', monospace;
+  color: #fff; /*Colour of introduction text*/
+  font-weight: 400 !important;/*шрифт/font style*/
+  font-size: 14px;
+}
+
+.output-text, .output-cmd {
+  display: block;
+}
+
+#fileSubmit{
+  background: black;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  color: #AAAAAA;
+  transition: color 0.2s ease;
+  margin-left: 20px;
+}
+
+#fileSubmit:hover{
+  color: #FFFFFF;
+    text-decoration: underline;
+}
+
+.book_list{
+  display: flex;
+  max-width: 45%;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0;
+}
+
+.book_list>a{
+  transition: 0.3s all ease;
+  cursor: pointer;
+  color: #FFE4C4;
+}
+
+.book_list>a:hover{
+  text-decoration: underline;
+  color: #FFFFFF;
+  font-weight: 700;
+}
+
+#file{
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1
+}
+
+#fileLabel{
+  margin: 0 0 0 10px;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  color: #AAAAAA;
+  transition: color 0.2s ease;
+}
+
+#fileLabel:hover{
+  text-decoration: underline;
+  color: #FFFFFF;
 }

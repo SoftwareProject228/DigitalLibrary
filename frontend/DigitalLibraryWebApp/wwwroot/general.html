@@ -1,31 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <!-- import css js and e.t.c -->
   <link rel="stylesheet" href="css/general.css">
   <script src="js/jquery-3.4.1.min.js"></script>
-  <script src="js/general.js"></script>
-  <meta charset="UTF-8">
-  <!-- for mobile phones -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- to support IE9 or IE8 -->
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Home</title>
+  <title>New</title>
 </head>
-<body>
-  <main>
-  <section id="home">
-  <p>Welcome to the digital library "Vasilisa Premudraya". Here you can see your materials</p>
-  <p><span>Type 'help' + <kbd>Enter</kbd> -- for available commands.</span></p>
-  </section>
 
-  <form method="post">
-     <span class="command">Vasilisa:/$
-       <input type="text">
-       <input type="submit" hidden>
-     </span>
-  </form>
+<body id="particles-js" class="particles-js">
+  <style id="cmd-css"> </style>
+<div class='console'>
+  <div class='console-inner'>
+    <div id="outputs">
+    </div>
+    <div class='console-prompt-box'>
+      <span class='console-label'>User:/$</span><input type="text" class='console-input' placeholder="type command...">
+    </div>
+  </div>
+</div>
 
-  </main>
+<script src="js/general.js"></script>
+
 </body>
+
 </html>
