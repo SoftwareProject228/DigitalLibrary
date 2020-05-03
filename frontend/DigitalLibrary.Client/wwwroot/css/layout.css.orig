@@ -1,0 +1,176 @@
+@import url(https://fonts.googleapis.com/css?family=Inconsolata:400,700);
+
+/*general settins*/
+html {
+  background: #000;/*colour of the background*/
+  overflow-y: hidden;
+}
+
+/*settings for the content*/
+body {
+  font: .975em/1.6 'Inconsolata', monospace;
+  color: #fff; /*Colour of introduction text*/
+  font-weight: 400;/*шрифт/font style*/
+  padding: 0 1em;/*distance between objects*/
+
+}
+
+/* part of the document that has been selected by the user*/
+::selection{
+  background: #A9A9A9
+}
+
+/*content in span tags*/
+span{
+  display: block;/*Makes span behave like blocks - has line break at the beginning and at the end of the content.*/
+  color:#FFE4C4;/*Span colour*/
+  line-height:1;/*space between two inline elements*/
+}
+
+/*content in p tags*/
+p{
+  margin-bottom:1em;/*Distance from the bottom edge of an element.*/
+}
+
+/*for text before input block (Vasilisa)*/
+.command{
+  display: block;/*Makes span behave like blocks - has line break at the beginning and at the end of the content.*/
+  max-width: 100%;/*max width of block*/
+  color: #E4A0FD;
+  font-weight: 700;/*шрифт/font style*/
+  margin: 1em 0;/*Distance from the border of the current element to the inner border of its parent element*/
+}
+
+.name_text{
+  display: block;/*Makes span behave like blocks - has line break at the beginning and at the end of the content.*/
+  max-width: 100%;/*max width of block*/
+  color: #fff;
+  font-weight: 700;/*шрифт/font style*/
+  margin: 1em 0;/*Distance from the border of the current element to the inner border of its parent element*/
+}
+
+.upload_text{
+ display: block;/*Makes span behave like blocks - has line break at the beginning and at the end of the content.*/
+ max-width: 100%;/*max width of block*/
+ color: #fff;
+ font-weight: 700;/*шрифт/font style*/
+ margin: 0;/*Distance from the border of the current element to the inner border of its parent element*/
+}
+
+#CommandR{
+  color: #fff;
+}
+
+/*to create borders around the words*/
+kbd{
+  font-family: 'Inconsolata', monospace;
+  border:1px solid #999;
+  text-transform: uppercase;
+  padding:0 .2em;
+}
+
+
+/*for input block*/
+input[type="text"]{
+  border: none;
+  font-family: inherit;
+  background: #000;
+  padding:0 .5em;/*tab before block*/
+  color: #99FFCC;
+  font-size: 100%;
+  width: 70%;
+}
+
+/*for text in input block*/
+input[type="text"]:focus{
+  background: #000; /*this is for colour of input block*/
+  color: #99FFCC;
+  outline:none;
+}
+
+a{
+  transition: 0.3s all ease;
+  cursor: pointer;
+  color: #FFE4C4;
+  margin-left: 1em;
+}
+a:hover{
+  text-decoration: underline;
+  color: #FFFFFF;
+  font-weight: 700;
+}
+
+.books_list{
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+}
+
+.books_list>li{
+  display: flex;
+  flex-basis: 45%;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.books_list>li>a{
+  transition: 0.3s all ease;
+  cursor: pointer;
+  color: #FFE4C4;
+}
+
+.books_list>li>p{
+  margin: 0 1em;
+}
+
+.books_list>li>a:hover{
+  text-decoration: underline;
+  color: #FFFFFF;
+  font-weight: 700;
+}
+
+/* container for text before upload block */
+.upload_file_wrapper{
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  flex-basis: 600px;
+}
+
+.abc{
+  display: flex;
+  justify-content: left;
+}
+
+.upload_text{
+  flex-basis: 200px;
+}
+
+
+/* design for uppload button */
+.upload_button{
+  /* text style */
+  font-family: inherit;
+  font-weight: 300;
+  font-size: 86%;
+  color: #696969;
+  /* block style */
+  border: none;
+  max-width:100%;
+  margin-left: 13px;
+  width: 100%;
+}
+
+/* hide standard view of uppload button */
+.upload_button .filupp > input[type="file"]{
+  position:absolute;
+  width:100%;
+  height:1px;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+  border:0
+}
+
+.courses_list>li>a{
+  color: #F5FFFA;
+}
