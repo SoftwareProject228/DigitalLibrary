@@ -1,0 +1,58 @@
+﻿@page "/"
+@using DigitalLibrary.Client.Data
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime
+
+<section class="sect">
+    <p>Welcome to the digital library, @UserName. Here you can see your materials.</p>
+    <p><span>Type 'help' + <kbd>Enter</kbd> -- for available commands.</span></p>
+</section>
+
+<section>
+    
+    @foreach (var component in _components)
+    {
+        if (component.Type == ILayoutItem.ItemType.CommandItem)
+        {
+            <CommandInput OnCommand="@OnCommand" UserName="@UserName"/>
+        }
+        else if (component.Type == ILayoutItem.ItemType.CommandStomp)
+        {
+            <CommandStomp CommandText="@(((CommandStompModel)component).CommandText)" UserName="@UserName"/>
+        }
+    }
+
+</section>
+
+@code
+{
+    private string UserName { get; set; } = "Unknown user";
+
+    private readonly List<ILayoutItem> _components = new List<ILayoutItem>();
+
+    protected override void OnInitialized()
+    {
+        if (UserAuthorizationModel.AuthenticationStatus != "ok")
+            NavigationManager.NavigateTo("/login");
+        else
+        {
+            UserName = UserAuthorizationModel.UserName;
+            _components.Add(new CommandInputModel());
+        }
+    }
+
+    private async void OnCommand(string command, IDictionary<string, string> parameters)
+    {
+        var commandText = command;
+        foreach (var parameter in parameters)
+        {
+            commandText += ' ' + parameter.Key + ' ' + parameter.Value;
+        }
+        _components.RemoveAt(_components.Count - 1);
+        _components.Add(new CommandStompModel {CommandText = commandText});
+        _components.Add(new CommandInputModel());
+        StateHasChanged();
+        await JsRuntime.InvokeVoidAsync("focusElement", "command");
+        await JsRuntime.InvokeVoidAsync("focusElement", "command");
+    }
+}

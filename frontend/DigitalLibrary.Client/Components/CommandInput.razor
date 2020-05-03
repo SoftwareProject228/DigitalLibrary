@@ -1,0 +1,41 @@
+﻿@using DigitalLibrary.Client.Components.Handlers
+@namespace DigitalLibrary.Client.Components
+@inject IJSRuntime JsRuntime
+
+<div>
+    <span class="command">@UserName:/$
+        <input id="command" type="text" @bind:event="oninput" @bind="Input" @onkeypress="OnKeyPress"/>
+    </span>
+</div>
+
+@code {
+
+    [Parameter]
+    public string UserName { get; set; }
+
+    [Parameter]
+    public CommandEventHandler OnCommand { get; set; }
+
+    public string Input { get; set; }
+
+    private void OnKeyPress(KeyboardEventArgs args)
+    {
+        if (args.Key != "Enter") return;
+        if (String.IsNullOrWhiteSpace(Input)) return;
+
+        var parameters = Input.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+        var command = parameters[0];
+        var commandArgs = new Dictionary<string, string>();
+        for (var i = 1; i < parameters.Length - 1; i += 2)
+        {
+            if (parameters[i][0] != '-')
+            {
+                commandArgs = null;
+                break;
+            }
+            commandArgs[parameters[i]] = parameters[i + 1];
+        }
+        OnCommand?.Invoke(command, commandArgs);
+    }
+
+}

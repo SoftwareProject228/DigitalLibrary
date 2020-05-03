@@ -1,0 +1,46 @@
+﻿@using DigitalLibrary.Client.Data
+@inject IJSRuntime JsRuntime
+@inject NavigationManager NavigationManager
+
+@page "/login"
+
+<section id="login_page">
+    <p>There is no captcha here, so even your code in prolog can enter.</p>
+</section>
+
+<div class="login">
+    <span>Login:/$ <input autocomplete="off" @bind="UserLogin" @bind:event="oninput" @onkeypress="OnLoginKeyPress" type="text" placeholder="username"/></span>
+    <span style="@PasswordHidden">Password:/$<input autocomplete="off" @bind="UserPassword" @bind:event="oninput" @onkeypress="OnPasswordKeyPress" id="password_text" type="password" placeholder="password"/></span>
+    <span id="loading" style="@Loading">Logging in...</span>
+</div>
+
+@code {
+    private string UserLogin { get; set; }
+
+    private string UserPassword { get; set; }
+
+    private string PasswordHidden { get; set; } = "display:none";
+
+    private string Loading { get; set; } = "display:none";
+
+    private async void OnPasswordKeyPress(KeyboardEventArgs args)
+    {
+        if (args.Key != "Enter") return;
+        Loading = "";
+        await UserAuthorizationModel.AuthorizeAsync(UserLogin, UserPassword);
+        NavigationManager.NavigateTo("/");
+    }
+
+    private async void OnLoginKeyPress(KeyboardEventArgs args)
+    {
+        if (args.Key != "Enter") return;
+        PasswordHidden = "";
+        await Focus("password_text");
+        await Focus("password_text");
+    }
+
+    private async Task Focus(string elementId)
+    {
+        await JsRuntime.InvokeVoidAsync("focusElement", elementId);
+    }
+}

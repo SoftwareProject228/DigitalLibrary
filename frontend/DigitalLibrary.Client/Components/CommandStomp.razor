@@ -1,0 +1,12 @@
+﻿@namespace DigitalLibrary.Client.Components
+<div>
+    <span class="command">@UserName:/$&nbsp;@CommandText</span>
+</div>
+
+@code {
+    [Parameter]
+    public string UserName { get; set; }
+
+    [Parameter]
+    public string CommandText { get; set; }
+}
