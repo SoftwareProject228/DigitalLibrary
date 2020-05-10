@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using DigitalLibrary.Model;
 using DigitalLibrary.Security.Models;
@@ -67,37 +66,25 @@ namespace DigitalLibrary.Context
 			await CollectionPrimary.DeleteOneAsync(new BsonDocument("_id", new BsonObjectId(new ObjectId(postId))));
 		}
 
-		public static async Task<CatalogNode> FindPostByIdRawAsync(string postId)
+		public static async Task<IEnumerable<CatalogNode>> SearchAsync(string title = "", string tag = null,
+			string id = "", string catalog = "primary")
 		{
-			var filter = Builders<CatalogNode>.Filter.Eq("_id", new BsonObjectId(new ObjectId(postId))) &
-			             Builders<CatalogNode>.Filter.Eq("Status", CatalogNode.WallPostStatus.Reviewing);
-			var result = await CollectionRaw.FindAsync(filter);
-			var rawPost = await result.FirstOrDefaultAsync();
-			return rawPost;
-		}
+			var collection = catalog != "raw" ? CollectionPrimary : CollectionRaw;
+			if (!String.IsNullOrWhiteSpace(id))
+			{
+				var idFilter = Builders<CatalogNode>.Filter.Eq("_id", new BsonObjectId(new ObjectId(id)));
+				var idResult = await collection.FindAsync(idFilter); 
+				return idResult.ToList();
+			}
 
-		public static async Task<CatalogNode> FindPostByIdPrimaryAsync(string postId)
-		{
-			var result = await CollectionPrimary.FindAsync(new BsonDocument("_id", new BsonObjectId(new ObjectId(postId))));
-			var primaryPost = await result.FirstOrDefaultAsync();
-			return primaryPost;
-		}
+			var filter = Builders<CatalogNode>.Filter.Empty;
+			if (!String.IsNullOrWhiteSpace(title))
+				filter &= Builders<CatalogNode>.Filter.Regex("Title", new BsonRegularExpression("*" + title + "*"));
+			if (!String.IsNullOrWhiteSpace(tag))
+				filter &= Builders<CatalogNode>.Filter.AnyEq("Tags", tag);
 
-		public static async Task<IEnumerable<CatalogNode>> FindPostsByTagRawAsync(string tag)
-		{
-			var filter = Builders<CatalogNode>.Filter.AnyEq("Tags", tag) &
-			             Builders<CatalogNode>.Filter.Eq("Status", CatalogNode.WallPostStatus.Reviewing);
-			var result = await CollectionRaw.FindAsync(filter);
-			var posts = result.ToEnumerable().OrderByDescending(post => post.CreationTime);
-			return posts;
-		}
-
-		public static async Task<IEnumerable<CatalogNode>> FindPostsByTagPrimaryAsync(string tag)
-		{
-			var filter = Builders<CatalogNode>.Filter.AnyEq("Tags", tag);
-			var result = await CollectionPrimary.FindAsync(filter);
-			var posts = result.ToEnumerable().OrderByDescending(post => post.CreationTime);
-			return posts;
+			var result = await collection.FindAsync(filter);
+			return result.ToList();
 		}
 	}
 }

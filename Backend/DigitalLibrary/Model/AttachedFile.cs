@@ -8,6 +8,7 @@ namespace DigitalLibrary.Model
 		[BsonId]
 		[BsonRepresentation(BsonType.ObjectId)]
 		public string Id { get; set; }
+
 		public string FileName { get; set; }
 
 		public long Lenght { get; set; }

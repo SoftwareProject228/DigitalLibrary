@@ -1,4 +1,5 @@
 ﻿using System;
+using DigitalLibrary.Authentication;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
@@ -14,13 +15,13 @@ namespace DigitalLibrary.Security.Models
 
 		public string ForEmail { get; set; }
 
-		public string ForUserStatus { get; set; }
+		public UserRole ForUserStatus { get; set; }
 
 		public bool Available { get; set; }
 
 		public DateTime ExpiresAt { get; set; }
 
 		[BsonRepresentation(BsonType.ObjectId)]
-		public string CreaterUserId { get; set; }
+		public string CreatorUserId { get; set; }
 	}
 }

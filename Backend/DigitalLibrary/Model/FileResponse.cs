@@ -1,6 +1,6 @@
 ﻿namespace DigitalLibrary.Model
 {
-	public class NewFileResponse
+	public class FileResponse
 	{
 		public string FileName { get; set; }
 

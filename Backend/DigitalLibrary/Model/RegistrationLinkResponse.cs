@@ -1,4 +1,5 @@
 ﻿using System;
+using DigitalLibrary.Authentication;
 
 namespace DigitalLibrary.Model
 {
@@ -6,7 +7,7 @@ namespace DigitalLibrary.Model
 	{
 		public string LinkToken { get; set; }
 
-		public string ForUserStatus { get; set; }
+		public UserRole ForUserStatus { get; set; }
 
 		public string ForUserName { get; set; }
 

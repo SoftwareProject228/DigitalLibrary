@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using DigitalLibrary.Authentication;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
@@ -6,13 +7,6 @@ namespace DigitalLibrary.Security.Models
 {
 	public class User
 	{
-		public static class UserStatus
-		{
-			public static string Student { get; } = "student";
-			public static string Professor { get; } = "professor";
-			public static string Moderator { get; } = "moderator";
-		}
-
 		[BsonId]
 		[BsonRepresentation(BsonType.ObjectId)]
 		public string Id { get; set; }
@@ -21,7 +15,7 @@ namespace DigitalLibrary.Security.Models
 
 		public string PasswordHash { get; set; }
 
-		public string Status { get; set; }
+		public UserRole Status { get; set; }
 
 		public string Email { get; set; }
 
