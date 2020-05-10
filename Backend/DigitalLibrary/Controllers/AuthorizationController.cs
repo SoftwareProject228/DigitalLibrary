@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using DigitalLibrary.Authentication;
 using DigitalLibrary.Context;
 using DigitalLibrary.Model;
+using DigitalLibrary.Request;
 using DigitalLibrary.Security;
 using DigitalLibrary.Security.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -19,9 +22,11 @@ namespace DigitalLibrary.Controllers
 	    {
 		    if (!Request.Headers.ContainsKey("username") || !Request.Headers.ContainsKey("password") ||
 		        !Request.Headers.ContainsKey("application"))
-			    return BadRequest(new UserAuthenticationResponse
+			    return BadRequest(new ErrorResponse
 			    {
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.NotEnoughtHeaders
+					ErrorCode = ErrorCodes.MissingSomeArguments,
+					ErrorMessage = "Missing arguments: username, password or appplication",
+					RequestParameters = new Dictionary<string, string>(new []{new KeyValuePair<string, string>("method", "login") })
 			    });
 
 		    var username = Request.Headers["username"][0];
@@ -35,16 +40,18 @@ namespace DigitalLibrary.Controllers
 		    var user = await UserContext.FindUserByNameAsync(username);
 
 		    if (user == null)
-			    return BadRequest(new UserAuthenticationResponse
+			    return BadRequest(new ErrorResponse
 			    {
-					UserName = username,
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.UserNotFound
+					ErrorCode = ErrorCodes.UserNotFound,
+					ErrorMessage = "User with given credintails not found",
+					RequestParameters = new Dictionary<string, string>(new []{new KeyValuePair<string, string>("method", "login") })
 			    });
 		    if (user.PasswordHash != passHash)
-			    return BadRequest(new UserAuthenticationResponse
+			    return BadRequest(new ErrorResponse
 			    {
-				    UserName = username,
-				    AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.IncorrectPassword
+					ErrorCode = ErrorCodes.IncorrectPassword,
+					ErrorMessage = "Inccorect password",
+					RequestParameters = new Dictionary<string, string>(new []{new KeyValuePair<string, string>("method", "login"), })
 			    });
 
 		    var userToken = new UserWebToken
@@ -62,75 +69,77 @@ namespace DigitalLibrary.Controllers
 				UserName = user.UserName,
 				Email = user.Email,
 				Token = userToken.Token,
-				AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.Ok,
-				UserStatus = user.Status
+				UserRole = user.Status
 		    });
 	    }
 
 	    [HttpGet]
-	    public IActionResult Logout()
+	    public IActionResult Logout(string token)
 	    {
-		    if (!Request.Headers.ContainsKey("token"))
-			    return BadRequest(new UserAuthenticationResponse
+		    if (String.IsNullOrWhiteSpace(token))
+			    return BadRequest(new ErrorResponse
 			    {
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.NotEnoughtHeaders
+					ErrorCode = ErrorCodes.MissingSomeArguments,
+					ErrorMessage = "Missing argument: token",
+					RequestParameters = new Dictionary<string, string>(new []{new KeyValuePair<string, string>("method", "logout") })
 			    });
-
-		    var token = Request.Headers["token"][0];
 
 		    UserWebTokenFactory.DeleteTokenAsync(token);
 		    return Ok();
 	    }
 
 		[HttpGet]
-	    public async Task<IActionResult> CreateLink()
+	    public async Task<IActionResult> CreateLink(string token, int? userRole, int? expiresIn, string userName, string email)
 	    {
-		    if (!Request.Headers.ContainsKey("token"))
-			    return BadRequest(new UserAuthenticationResponse
+		    if (String.IsNullOrWhiteSpace(token))
+			    return BadRequest(new ErrorResponse
 			    {
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.NotEnoughtHeaders
+					ErrorCode = ErrorCodes.MissingSomeArguments,
+					ErrorMessage = "Miising argument: token",
+					RequestParameters = new Dictionary<string, string>(new []{new KeyValuePair<string, string>("method", "createLink") })
 			    });
 
-		    var token = Request.Headers["token"][0];
 		    var validation = await UserWebTokenFactory.CheckTokenValidationAsync(token);
 		    if (validation == null || validation.Validation == UserWebToken.TokenValidation.Invalid)
-			    return BadRequest(new UserAuthenticationResponse
+			    return BadRequest(new ErrorResponse
 			    {
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.InvalidToken
+					ErrorCode = ErrorCodes.InvalidToken,
+					ErrorMessage = "Invalid authentication token",
+					RequestParameters = new Dictionary<string, string>(new []
+					{
+						new KeyValuePair<string, string>("method", "createLink"),
+					})
 			    });
 		    if (validation.Validation == UserWebToken.TokenValidation.Expired)
-			    return BadRequest(new UserAuthenticationResponse
+			    return BadRequest(new ErrorResponse
 			    {
-				    UserName = validation.User.UserName,
-				    Email = validation.User.Email,
-				    UserStatus = validation.User.Status,
-				    Token = token,
-				    AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.TokenExpired
+					ErrorCode = ErrorCodes.TokenExpired,
+					ErrorMessage = "Token expired. Relogin required",
+					RequestParameters = new Dictionary<string, string>(new []{new KeyValuePair<string, string>("method", "createLink") })
 			    });
 
-		    if (validation.User.Status != Security.Models.User.UserStatus.Moderator)
-			    return Unauthorized(new UserAuthenticationResponse
+		    if (validation.User.Status != UserRole.Moderator)
+			    return BadRequest(new ErrorResponse
 			    {
-					UserName = validation.User.UserName,
-					Email = validation.User.Email,
-					Token = token,
-					UserStatus = validation.User.Status,
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.AccessDenied
+					ErrorCode = ErrorCodes.AccessDenied,
+					ErrorMessage = "Access denied. Minimum access level: moderator",
+					RequestParameters = new Dictionary<string, string>(new []{new KeyValuePair<string, string>("method", "createLink") })
 			    });
 
-		    var status = Security.Models.User.UserStatus.Student;
-			
-		    if (Request.Headers.ContainsKey("status"))
-			    status = Request.Headers["status"][0];
+		    var status = UserRole.Student;
+
+		    if (userRole != null)
+			    status = (UserRole) userRole;
+
 		    var expiresAt = DateTime.MaxValue;
-			if (Request.Headers.ContainsKey("expiresAt"))
-				expiresAt = DateTime.Now.AddDays(int.Parse(Request.Headers["expiresAt"][0]));
-			var userName = "";
-			if (Request.Headers.ContainsKey("username"))
-				userName = Request.Headers["username"][0];
-			var email = "";
-			if (Request.Headers.ContainsKey("email"))
-				email = Request.Headers["email"][0];
+			if (expiresIn != null)
+				expiresAt = DateTime.Now.AddHours(expiresIn.Value);
+
+			if (String.IsNullOrWhiteSpace(userName))
+				userName = "";
+
+			if (String.IsNullOrWhiteSpace(email))
+				email = "";
 
 		    var userToken = UserWebToken.FromToken(token);
 
@@ -141,7 +150,7 @@ namespace DigitalLibrary.Controllers
 			    ForUserName = userName,
 			    ForEmail = email,
 			    ForUserStatus = status,
-			    CreaterUserId = userToken.UserId
+			    CreatorUserId = userToken.UserId
 		    });
 
 		    return Ok(new RegistrationLinkResponse
@@ -155,36 +164,42 @@ namespace DigitalLibrary.Controllers
 	    }
 
 		[HttpGet]
-		public async Task<IActionResult> SignUp()
+		public async Task<IActionResult> SignUp(string link)
 		{
-			if (!Request.Headers.ContainsKey("linktoken"))
-				return BadRequest(new RegistrationResponse
+			if (String.IsNullOrWhiteSpace(link))
+				return BadRequest(new ErrorResponse
 				{
-					RegistrationStatus = RegistrationResponse.Status.NotEnoughtHeaders
+					ErrorCode = ErrorCodes.MissingSomeArguments,
+					ErrorMessage = "Missing argument: link",
+					RequestParameters = new Dictionary<string, string>(new []{new KeyValuePair<string, string>("method", "signUp") })
 				});
 
-			var linkToken = Request.Headers["linktoken"][0];
-			var link = await RegistrationLinkContext.FindLinkByIdAsync(linkToken);
-			if (!link.Available || link.ExpiresAt < DateTime.Now)
-				return BadRequest(new RegistrationResponse
+			var linkToken = await RegistrationLinkContext.FindLinkByIdAsync(link);
+			if (!linkToken.Available || linkToken.ExpiresAt < DateTime.Now)
+				return BadRequest(new ErrorResponse
 				{
-					RegistrationStatus = RegistrationResponse.Status.TokenNotAvailable
+					ErrorCode = ErrorCodes.RegistrationLinkNotAvailable,
+					ErrorMessage = "The link is not available",
+					RequestParameters = new Dictionary<string, string>(new []{new KeyValuePair<string, string>("method", "signUp") })
 				});
 
 			if (!Request.Headers.ContainsKey("username") || !Request.Headers.ContainsKey("password") ||
 			    !Request.Headers.ContainsKey("email"))
-				return BadRequest(new RegistrationResponse
+				return BadRequest(new ErrorResponse
 				{
-					RegistrationStatus = RegistrationResponse.Status.NotEnoughtHeaders
+					ErrorCode = ErrorCodes.MissingSomeArguments,
+					ErrorMessage = "Missing some arguments: username, password or email",
+					RequestParameters = new Dictionary<string, string>(new []{new KeyValuePair<string, string>("method", "signUp") })
 				});
 
 			var userName = Request.Headers["username"][0];
 			var foundUser = await UserContext.FindUserByNameAsync(userName);
 			if (foundUser != null)
-				return BadRequest(new RegistrationResponse
+				return BadRequest(new ErrorResponse
 				{
-					UserName = userName,
-					RegistrationStatus = RegistrationResponse.Status.UserNameNotAvailable
+					ErrorCode = ErrorCodes.UserAlreadyExists,
+					ErrorMessage = "User with selected user name already exists",
+					RequestParameters = new Dictionary<string, string>(new []{new KeyValuePair<string, string>("method", "signUp") })
 				});
 
 			var password = Request.Headers["password"][0];
@@ -197,34 +212,36 @@ namespace DigitalLibrary.Controllers
 
 			await UserContext.AddUserAsync(new User
 			{
-				UserName = String.IsNullOrWhiteSpace(link.ForUserName) ? userName : link.ForUserName,
-				Email = String.IsNullOrWhiteSpace(link.ForEmail) ? email : link.ForEmail,
+				UserName = String.IsNullOrWhiteSpace(linkToken.ForUserName) ? userName : linkToken.ForUserName,
+				Email = String.IsNullOrWhiteSpace(linkToken.ForEmail) ? email : linkToken.ForEmail,
 				PasswordHash = passHash,
-				Status = link.ForUserStatus,
+				Status = linkToken.ForUserStatus,
 				AssociatedTags = null,
-				RegisteredByLink = link.Id
+				RegisteredByLink = linkToken.Id
 			});
 
-			RegistrationLinkContext.InvalidateLinkAsync(link.Id);
+			RegistrationLinkContext.InvalidateLinkAsync(linkToken.Id);
 			return Ok(new RegistrationResponse
 			{
-				UserName = String.IsNullOrWhiteSpace(link.ForUserName) ? userName : link.ForUserName,
-				Email = String.IsNullOrWhiteSpace(link.ForEmail) ? email : link.ForEmail,
-				UserStatus = link.ForUserStatus,
-				RegistrationStatus = RegistrationResponse.Status.Ok
+				UserName = String.IsNullOrWhiteSpace(linkToken.ForUserName) ? userName : linkToken.ForUserName,
+				Email = String.IsNullOrWhiteSpace(linkToken.ForEmail) ? email : linkToken.ForEmail,
+				UserStatus = linkToken.ForUserStatus,
 			});
 		}
 
 		[HttpGet]
-		public async Task<IActionResult> CheckLink()
+		public async Task<IActionResult> CheckLink(string link)
 		{
-			if (!Request.Headers.ContainsKey("linktoken"))
-				return BadRequest();
+			if (String.IsNullOrWhiteSpace(link))
+				return BadRequest(new ErrorResponse
+				{
+					ErrorCode = ErrorCodes.MissingSomeArguments,
+					ErrorMessage = "Missing argument: link",
+					RequestParameters = new Dictionary<string, string>(new []{new KeyValuePair<string, string>("method", "checkLink") })
+				});
 
-			var linkToken = Request.Headers["linktoken"][0];
-
-			var link = await RegistrationLinkContext.FindLinkByIdAsync(linkToken);
-			return Ok(link);
+			var linkToken = await RegistrationLinkContext.FindLinkByIdAsync(link);
+			return Ok(linkToken);
 		}
     }
 }

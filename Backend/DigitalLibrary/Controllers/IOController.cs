@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using DigitalLibrary.Authentication;
 using DigitalLibrary.Context;
 using DigitalLibrary.Model;
+using DigitalLibrary.Request;
 using DigitalLibrary.Security;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,34 +17,34 @@ namespace DigitalLibrary.Controllers
     public class IOController : ControllerBase
     {
         [HttpPost]
-	    public async Task<IActionResult> UploadFile()
+	    public async Task<IActionResult> UploadFile(string token, string fileName)
 	    {
-		    if (!Request.Headers.ContainsKey("token"))
-			    return Unauthorized(new UserAuthenticationResponse
+		    if (String.IsNullOrWhiteSpace(token))
+			    return BadRequest(new ErrorResponse
 			    {
-				    AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.NotEnoughtHeaders
+					ErrorCode = ErrorCodes.MissingSomeArguments,
+					ErrorMessage = "Missing argument: token",
+					RequestParameters = new Dictionary<string, string>(new []{new KeyValuePair<string, string>("method", "uploadFile") })
 			    });
 
-		    var token = Request.Headers["token"][0];
 		    var validation = await UserWebTokenFactory.CheckTokenValidationAsync(token);
 		    if (validation == null || validation.Validation == UserWebToken.TokenValidation.Invalid)
-			    return BadRequest(new UserAuthenticationResponse
+			    return BadRequest(new ErrorResponse
 			    {
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.InvalidToken
+				    ErrorCode = ErrorCodes.InvalidToken,
+				    ErrorMessage = "Invalid token",
+				    RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "uploadFile") })
 			    });
 		    if (validation.Validation == UserWebToken.TokenValidation.Expired)
-			    return BadRequest(new UserAuthenticationResponse
+			    return BadRequest(new ErrorResponse
 			    {
-				    UserName = validation.User.UserName,
-				    Email = validation.User.Email,
-				    UserStatus = validation.User.Status,
-				    Token = token,
-				    AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.TokenExpired
+				    ErrorCode = ErrorCodes.TokenExpired,
+				    ErrorMessage = "Token expired. Relogin required",
+				    RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "uploadFile") })
 			    });
 
-		    var fileName = Guid.NewGuid().ToString();
-			if (Request.Headers.ContainsKey("filename"))
-				fileName = Request.Headers["filename"][0];
+			if (String.IsNullOrWhiteSpace(fileName))
+				fileName = Guid.NewGuid().ToString();
 
 		    var path = Path.Combine(Environment.CurrentDirectory, "files");
 		    Directory.CreateDirectory(path);
@@ -59,7 +62,7 @@ namespace DigitalLibrary.Controllers
 			};
 
 			var fileId = await FileContext.AddFileAsync(attachedFile);
-			return Ok(new NewFileResponse
+			return Ok(new FileResponse
 			{
 				FileId = fileId,
 				FileName = fileName,
@@ -68,29 +71,30 @@ namespace DigitalLibrary.Controllers
 	    }
 
 		[HttpPost]
-	    public async Task<IActionResult> UploadPost([FromBody] WallPost post)
+	    public async Task<IActionResult> UploadPost(string token, [FromBody] WallPost post)
 	    {
-			if (!Request.Headers.ContainsKey("token"))
-				return Unauthorized(new UserAuthenticationResponse
+			if (String.IsNullOrWhiteSpace(token))
+				return BadRequest(new ErrorResponse
 				{
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.NotEnoughtHeaders
+					ErrorCode = ErrorCodes.MissingSomeArguments,
+					ErrorMessage = "Missing argument: token",
+					RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "uploadPost") })
 				});
 
-			var token = Request.Headers["token"][0];
 			var validation = await UserWebTokenFactory.CheckTokenValidationAsync(token);
 			if (validation == null || validation.Validation == UserWebToken.TokenValidation.Invalid)
-				return BadRequest(new UserAuthenticationResponse
+				return BadRequest(new ErrorResponse
 				{
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.InvalidToken
+					ErrorCode = ErrorCodes.InvalidToken,
+					ErrorMessage = "Invalid token",
+					RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "uploadPost") })
 				});
 			if (validation.Validation == UserWebToken.TokenValidation.Expired)
-				return BadRequest(new UserAuthenticationResponse
+				return BadRequest(new ErrorResponse
 				{
-					UserName = validation.User.UserName,
-					Email = validation.User.Email,
-					UserStatus = validation.User.Status,
-					Token = token,
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.TokenExpired
+					ErrorCode = ErrorCodes.MissingSomeArguments,
+					ErrorMessage = "Token expired. Relogin required",
+					RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "uploadPost") })
 				});
 
 
@@ -99,64 +103,58 @@ namespace DigitalLibrary.Controllers
 	    }
 
 		[HttpGet]
-	    public async Task<IActionResult> AcceptPost()
+	    public async Task<IActionResult> AcceptPost(string token, string postId)
 	    {
-		    if (!Request.Headers.ContainsKey("token"))
-			    return Unauthorized(new UserAuthenticationResponse
+		    if (String.IsNullOrWhiteSpace(token))
+			    return BadRequest(new ErrorResponse
 			    {
-				    AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.NotEnoughtHeaders
+				    ErrorCode = ErrorCodes.MissingSomeArguments,
+				    ErrorMessage = "Missing argument: token",
+				    RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "acceptPost") })
 			    });
 
-		    var token = Request.Headers["token"][0];
 		    var validation = await UserWebTokenFactory.CheckTokenValidationAsync(token);
 		    if (validation == null || validation.Validation == UserWebToken.TokenValidation.Invalid)
-			    return BadRequest(new UserAuthenticationResponse
+			    return BadRequest(new ErrorResponse
 			    {
-				    AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.InvalidToken
+				    ErrorCode = ErrorCodes.InvalidToken,
+				    ErrorMessage = "Invalid token",
+				    RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "acceptPost") })
 			    });
 		    if (validation.Validation == UserWebToken.TokenValidation.Expired)
-			    return BadRequest(new UserAuthenticationResponse
+			    return BadRequest(new ErrorResponse
 			    {
-				    UserName = validation.User.UserName,
-				    Email = validation.User.Email,
-				    UserStatus = validation.User.Status,
-				    Token = token,
-				    AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.TokenExpired
+				    ErrorCode = ErrorCodes.TokenExpired,
+				    ErrorMessage = "Token expired. Relogin required",
+				    RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "acceptPost") })
 			    });
 
-		    if (validation.User.Status == Security.Models.User.UserStatus.Student)
-			    return BadRequest(new UserAuthenticationResponse
+		    if (validation.User.Status == UserRole.Student)
+			    return BadRequest(new ErrorResponse
 			    {
-				    UserName = validation.User.UserName,
-				    Email = validation.User.Email,
-				    UserStatus = validation.User.Status,
-				    Token = token,
-				    AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.AccessDenied
+				    ErrorCode = ErrorCodes.AccessDenied,
+				    ErrorMessage = "Access denied",
+				    RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "acceptPost") })
 			    });
 
-		    if (!Request.Headers.ContainsKey("post_id"))
-			    return BadRequest(new UserAuthenticationResponse
+		    if (String.IsNullOrWhiteSpace(postId))
+			    return BadRequest(new ErrorResponse
 			    {
-				    UserName = validation.User.UserName,
-				    Email = validation.User.Email,
-				    UserStatus = validation.User.Status,
-				    Token = token,
-				    AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.NotEnoughtHeaders
+				    ErrorCode = ErrorCodes.AccessDenied,
+				    ErrorMessage = "Missing argument: postId",
+				    RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "acceptPost") })
 			    });
 
-		    var postId = Request.Headers["post_id"];
-		    if (validation.User.Status == Security.Models.User.UserStatus.Professor)
+		    if (validation.User.Status == UserRole.Professor)
 		    {
-			    var post = await CatalogContext.FindPostByIdRawAsync(postId);
+			    var post = (await CatalogContext.SearchAsync(id: postId, catalog: "raw")).FirstOrDefault();
 			    if (post.Tags.Union(validation.User.AssociatedTags).Count() ==
 			        post.Tags.Count + validation.User.AssociatedTags.Count)
-				    return BadRequest(new UserAuthenticationResponse
+				    return BadRequest(new ErrorResponse
 				    {
-					    UserName = validation.User.UserName,
-					    Email = validation.User.Email,
-					    UserStatus = validation.User.Status,
-					    Token = token,
-					    AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.AccessDenied
+					    ErrorCode = ErrorCodes.AccessDenied,
+					    ErrorMessage = "Access denied",
+					    RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "acceptPost") })
 				    });
 		    }
 
@@ -165,64 +163,58 @@ namespace DigitalLibrary.Controllers
 	    }
 
 	    [HttpGet]
-	    public async Task<IActionResult> DeclinePost()
+	    public async Task<IActionResult> DeclinePost(string token, string postId)
 	    {
-			if (!Request.Headers.ContainsKey("token"))
-				return Unauthorized(new UserAuthenticationResponse
+			if (String.IsNullOrWhiteSpace(token))
+				return BadRequest(new ErrorResponse
 				{
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.NotEnoughtHeaders
+					ErrorCode = ErrorCodes.MissingSomeArguments,
+					ErrorMessage = "Missing argument: token",
+					RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "declinePost") })
 				});
 
-			var token = Request.Headers["token"][0];
 			var validation = await UserWebTokenFactory.CheckTokenValidationAsync(token);
 			if (validation == null || validation.Validation == UserWebToken.TokenValidation.Invalid)
-				return BadRequest(new UserAuthenticationResponse
+				return BadRequest(new ErrorResponse
 				{
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.InvalidToken
+					ErrorCode = ErrorCodes.InvalidToken,
+					ErrorMessage = "Invalid token",
+					RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "declinePost") })
 				});
 			if (validation.Validation == UserWebToken.TokenValidation.Expired)
-				return BadRequest(new UserAuthenticationResponse
+				return BadRequest(new ErrorResponse
 				{
-					UserName = validation.User.UserName,
-					Email = validation.User.Email,
-					UserStatus = validation.User.Status,
-					Token = token,
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.TokenExpired
+					ErrorCode = ErrorCodes.TokenExpired,
+					ErrorMessage = "Token expired. Relogin required",
+					RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "declinePost") })
 				});
 
-			if (validation.User.Status == Security.Models.User.UserStatus.Student)
-				return BadRequest(new UserAuthenticationResponse
+			if (validation.User.Status == UserRole.Student)
+				return BadRequest(new ErrorResponse
 				{
-					UserName = validation.User.UserName,
-					Email = validation.User.Email,
-					UserStatus = validation.User.Status,
-					Token = token,
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.AccessDenied
+					ErrorCode = ErrorCodes.AccessDenied,
+					ErrorMessage = "Access denied",
+					RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "declinePost") })
 				});
 
-			if (!Request.Headers.ContainsKey("post_id"))
-				return BadRequest(new UserAuthenticationResponse
+			if (String.IsNullOrWhiteSpace(postId))
+				return BadRequest(new ErrorResponse
 				{
-					UserName = validation.User.UserName,
-					Email = validation.User.Email,
-					UserStatus = validation.User.Status,
-					Token = token,
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.NotEnoughtHeaders
+					ErrorCode = ErrorCodes.MissingSomeArguments,
+					ErrorMessage = "Missing argument: postId",
+					RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "declinePost") })
 				});
 
-			var postId = Request.Headers["post_id"];
-			if (validation.User.Status == Security.Models.User.UserStatus.Professor)
+			if (validation.User.Status == UserRole.Professor)
 			{
-				var post = await CatalogContext.FindPostByIdRawAsync(postId);
+				var post = (await CatalogContext.SearchAsync(id: postId, catalog: "raw")).FirstOrDefault();
 				if (post.Tags.Union(validation.User.AssociatedTags).Count() ==
 					post.Tags.Count + validation.User.AssociatedTags.Count)
-					return BadRequest(new UserAuthenticationResponse
+					return BadRequest(new ErrorResponse
 					{
-						UserName = validation.User.UserName,
-						Email = validation.User.Email,
-						UserStatus = validation.User.Status,
-						Token = token,
-						AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.AccessDenied
+						ErrorCode = ErrorCodes.AccessDenied,
+						ErrorMessage = "Access denied",
+						RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "declinePost") })
 					});
 			}
 
@@ -231,64 +223,60 @@ namespace DigitalLibrary.Controllers
 	    }
 
 	    [HttpGet]
-	    public async Task<IActionResult> DeletePost()
+	    public async Task<IActionResult> DeletePost(string token, string postId)
 	    {
-			if (!Request.Headers.ContainsKey("token"))
-				return Unauthorized(new UserAuthenticationResponse
+			if (String.IsNullOrWhiteSpace(token))
+				return BadRequest(new ErrorResponse
 				{
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.NotEnoughtHeaders
+					ErrorCode = ErrorCodes.MissingSomeArguments,
+					ErrorMessage = "Missing argument: postId",
+					RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "deletePost") })
 				});
 
-			var token = Request.Headers["token"][0];
 			var validation = await UserWebTokenFactory.CheckTokenValidationAsync(token);
 			if (validation == null || validation.Validation == UserWebToken.TokenValidation.Invalid)
-				return BadRequest(new UserAuthenticationResponse
+				return BadRequest(new ErrorResponse
 				{
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.InvalidToken
+					ErrorCode = ErrorCodes.InvalidToken,
+					ErrorMessage = "Invalid token",
+					RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "deletePost") })
 				});
 			if (validation.Validation == UserWebToken.TokenValidation.Expired)
-				return BadRequest(new UserAuthenticationResponse
+				return BadRequest(new ErrorResponse
 				{
-					UserName = validation.User.UserName,
-					Email = validation.User.Email,
-					UserStatus = validation.User.Status,
-					Token = token,
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.TokenExpired
+					ErrorCode = ErrorCodes.TokenExpired,
+					ErrorMessage = "Token expired. Relogin required",
+					RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "deletePost") })
 				});
 
-			if (validation.User.Status == Security.Models.User.UserStatus.Student)
-				return BadRequest(new UserAuthenticationResponse
+			if (String.IsNullOrWhiteSpace(postId))
+				return BadRequest(new ErrorResponse
 				{
-					UserName = validation.User.UserName,
-					Email = validation.User.Email,
-					UserStatus = validation.User.Status,
-					Token = token,
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.AccessDenied
+					ErrorCode = ErrorCodes.MissingSomeArguments,
+					ErrorMessage = "Missing argument: postId",
+					RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "deletePost") })
 				});
 
-			if (!Request.Headers.ContainsKey("post_id"))
-				return BadRequest(new UserAuthenticationResponse
+			var post = (await CatalogContext.SearchAsync(id: postId)).FirstOrDefault();
+
+			if (validation.User.Status == UserRole.Student && post.Publisher.Id != validation.User.Id)
+				return BadRequest(new ErrorResponse
 				{
-					UserName = validation.User.UserName,
-					Email = validation.User.Email,
-					UserStatus = validation.User.Status,
-					Token = token,
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.NotEnoughtHeaders
+					ErrorCode = ErrorCodes.AccessDenied,
+					ErrorMessage = "Access denied",
+					RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "deletePost") })
 				});
 
-			var postId = Request.Headers["post_id"];
-			if (validation.User.Status == Security.Models.User.UserStatus.Professor)
+
+			if (validation.User.Status == UserRole.Professor)
 			{
-				var post = await CatalogContext.FindPostByIdRawAsync(postId);
 				if (post.Tags.Union(validation.User.AssociatedTags).Count() ==
 					post.Tags.Count + validation.User.AssociatedTags.Count)
-					return BadRequest(new UserAuthenticationResponse
+					return BadRequest(new ErrorResponse
 					{
-						UserName = validation.User.UserName,
-						Email = validation.User.Email,
-						UserStatus = validation.User.Status,
-						Token = token,
-						AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.AccessDenied
+						ErrorCode = ErrorCodes.AccessDenied,
+						ErrorMessage = "Access denied",
+						RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "deletePost") })
 					});
 			}
 
@@ -297,215 +285,36 @@ namespace DigitalLibrary.Controllers
 	    }
 
 	    [HttpGet]
-	    public async Task<IActionResult> FindPostsByTag()
+	    public async Task<IActionResult> Search(string token, string title, string tag, string id,
+		    string catalog = "primary")
 	    {
-			if (!Request.Headers.ContainsKey("token"))
-				return Unauthorized(new UserAuthenticationResponse
-				{
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.NotEnoughtHeaders
-				});
+		    if (String.IsNullOrWhiteSpace(token))
+			    return BadRequest(new ErrorResponse
+			    {
+				    ErrorCode = ErrorCodes.MissingSomeArguments,
+				    ErrorMessage = "Missing argument: token",
+				    RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "search") })
+			    });
 
-			var token = Request.Headers["token"][0];
-			var validation = await UserWebTokenFactory.CheckTokenValidationAsync(token);
-			if (validation == null || validation.Validation == UserWebToken.TokenValidation.Invalid)
-				return BadRequest(new UserAuthenticationResponse
-				{
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.InvalidToken
-				});
-			if (validation.Validation == UserWebToken.TokenValidation.Expired)
-				return BadRequest(new UserAuthenticationResponse
-				{
-					UserName = validation.User.UserName,
-					Email = validation.User.Email,
-					UserStatus = validation.User.Status,
-					Token = token,
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.TokenExpired
-				});
+		    var validation = await UserWebTokenFactory.CheckTokenValidationAsync(token);
+		    if (validation == null || validation.Validation == UserWebToken.TokenValidation.Invalid)
+			    return BadRequest(new ErrorResponse
+			    {
+				    ErrorCode = ErrorCodes.InvalidToken,
+				    ErrorMessage = "Invalid token",
+				    RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "search") })
+			    });
+		    if (validation.Validation == UserWebToken.TokenValidation.Expired)
+			    return BadRequest(new ErrorResponse
+			    {
+				    ErrorCode = ErrorCodes.TokenExpired,
+				    ErrorMessage = "Token expired. Relogin required",
+				    RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "search") })
+			    });
 
-			if (!Request.Headers.ContainsKey("tag"))
-				return BadRequest(new UserAuthenticationResponse
-				{
-					UserName = validation.User.UserName,
-					Email = validation.User.Email,
-					UserStatus = validation.User.Status,
-					Token = token,
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.NotEnoughtHeaders
-				});
-
-			var tag = Request.Headers["tag"];
-			var posts = await CatalogContext.FindPostsByTagPrimaryAsync(tag);
-			return Ok(posts);
+			var posts = await CatalogContext.SearchAsync(title, tag, id, catalog);
+		    return Ok(posts);
 	    }
 
-	    [HttpGet]
-	    public async Task<IActionResult> FindPostsByTagRaw()
-	    {
-			if (!Request.Headers.ContainsKey("token"))
-				return Unauthorized(new UserAuthenticationResponse
-				{
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.NotEnoughtHeaders
-				});
-
-			var token = Request.Headers["token"][0];
-			var validation = await UserWebTokenFactory.CheckTokenValidationAsync(token);
-			if (validation == null || validation.Validation == UserWebToken.TokenValidation.Invalid)
-				return BadRequest(new UserAuthenticationResponse
-				{
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.InvalidToken
-				});
-			if (validation.Validation == UserWebToken.TokenValidation.Expired)
-				return BadRequest(new UserAuthenticationResponse
-				{
-					UserName = validation.User.UserName,
-					Email = validation.User.Email,
-					UserStatus = validation.User.Status,
-					Token = token,
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.TokenExpired
-				});
-
-			if (validation.User.Status == Security.Models.User.UserStatus.Student)
-				return BadRequest(new UserAuthenticationResponse
-				{
-					UserName = validation.User.UserName,
-					Email = validation.User.Email,
-					UserStatus = validation.User.Status,
-					Token = token,
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.AccessDenied
-				});
-
-			if (!Request.Headers.ContainsKey("tag"))
-				return BadRequest(new UserAuthenticationResponse
-				{
-					UserName = validation.User.UserName,
-					Email = validation.User.Email,
-					UserStatus = validation.User.Status,
-					Token = token,
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.NotEnoughtHeaders
-				});
-
-			var tag = Request.Headers["tag"];
-			if (validation.User.Status == Security.Models.User.UserStatus.Professor)
-			{
-				if (validation.User.AssociatedTags == null || !validation.User.AssociatedTags.Contains(tag))
-					return BadRequest(new UserAuthenticationResponse
-					{
-						UserName = validation.User.UserName,
-						Email = validation.User.Email,
-						UserStatus = validation.User.Status,
-						Token = token,
-						AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.AccessDenied
-					});
-			}
-
-			var posts = await CatalogContext.FindPostsByTagRawAsync(tag);
-			return Ok(posts);
-	    }
-
-		[HttpGet]
-	    public async Task<IActionResult> FindPostByIdRaw()
-	    {
-			if (!Request.Headers.ContainsKey("token"))
-				return Unauthorized(new UserAuthenticationResponse
-				{
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.NotEnoughtHeaders
-				});
-
-			var token = Request.Headers["token"][0];
-			var validation = await UserWebTokenFactory.CheckTokenValidationAsync(token);
-			if (validation == null || validation.Validation == UserWebToken.TokenValidation.Invalid)
-				return BadRequest(new UserAuthenticationResponse
-				{
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.InvalidToken
-				});
-			if (validation.Validation == UserWebToken.TokenValidation.Expired)
-				return BadRequest(new UserAuthenticationResponse
-				{
-					UserName = validation.User.UserName,
-					Email = validation.User.Email,
-					UserStatus = validation.User.Status,
-					Token = token,
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.TokenExpired
-				});
-
-			if (validation.User.Status == Security.Models.User.UserStatus.Student)
-				return BadRequest(new UserAuthenticationResponse
-				{
-					UserName = validation.User.UserName,
-					Email = validation.User.Email,
-					UserStatus = validation.User.Status,
-					Token = token,
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.AccessDenied
-				});
-
-			if (!Request.Headers.ContainsKey("post_id"))
-				return BadRequest(new UserAuthenticationResponse
-				{
-					UserName = validation.User.UserName,
-					Email = validation.User.Email,
-					UserStatus = validation.User.Status,
-					Token = token,
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.NotEnoughtHeaders
-				});
-
-			var postId = Request.Headers["post_id"];
-			if (validation.User.Status == Security.Models.User.UserStatus.Professor)
-			{
-				var post = await CatalogContext.FindPostByIdRawAsync(postId);
-				if (post.Tags.Union(validation.User.AssociatedTags).Count() ==
-					post.Tags.Count + validation.User.AssociatedTags.Count)
-					return BadRequest(new UserAuthenticationResponse
-					{
-						UserName = validation.User.UserName,
-						Email = validation.User.Email,
-						UserStatus = validation.User.Status,
-						Token = token,
-						AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.AccessDenied
-					});
-			}
-
-			var post2 = await CatalogContext.FindPostByIdRawAsync(postId);
-			return Ok(post2);
-	    }
-
-	    [HttpGet]
-	    public async Task<IActionResult> FindPostById()
-	    {
-			if (!Request.Headers.ContainsKey("token"))
-				return Unauthorized(new UserAuthenticationResponse
-				{
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.NotEnoughtHeaders
-				});
-
-			var token = Request.Headers["token"][0];
-			var validation = await UserWebTokenFactory.CheckTokenValidationAsync(token);
-			if (validation == null || validation.Validation == UserWebToken.TokenValidation.Invalid)
-				return BadRequest(new UserAuthenticationResponse
-				{
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.InvalidToken
-				});
-			if (validation.Validation == UserWebToken.TokenValidation.Expired)
-				return BadRequest(new UserAuthenticationResponse
-				{
-					UserName = validation.User.UserName,
-					Email = validation.User.Email,
-					UserStatus = validation.User.Status,
-					Token = token,
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.TokenExpired
-				});
-
-			if (!Request.Headers.ContainsKey("post_id"))
-				return BadRequest(new UserAuthenticationResponse
-				{
-					UserName = validation.User.UserName,
-					Email = validation.User.Email,
-					UserStatus = validation.User.Status,
-					Token = token,
-					AuthenticationStatus = UserAuthenticationResponse.UserAuthenticationStatus.NotEnoughtHeaders
-				});
-
-			var postId = Request.Headers["post_id"];
-			var post = await CatalogContext.FindPostByIdPrimaryAsync(postId);
-			return Ok(post);
-	    }
 	}
 }
