@@ -80,6 +80,12 @@ namespace DigitalLibrary.Client.ViewModels
 				var id = int.Parse(parameters["-id"]);
 				CurrentlyOpened = Context.Posts.FirstOrDefault(elem => elem.Key == id).Value;
 			}
+			else if (command == "delete")
+			{
+				var id = int.Parse(parameters["-id"]);
+				var elem = Context.Posts.First(pair => pair.Key == id);
+				Context.Posts.Remove(elem);
+			}
 			else
 			{
 				IsClosed = true;
