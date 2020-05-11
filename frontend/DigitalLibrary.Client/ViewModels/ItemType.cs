@@ -5,6 +5,7 @@
 		CommandItem,
 		CommandStomp,
 		CommandSearch,
-		UploadPost
+		UploadPost,
+		Library
 	}
 }

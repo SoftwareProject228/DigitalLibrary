@@ -30,6 +30,10 @@
         {
             <UploadPost DataContext="(UploadPostViewModel)component"/>
         }
+        else if (component.Type == ItemType.Library)
+        {
+            <Library DataContext="(LibraryViewModel)component"/>
+        }
     }
 
 </section>

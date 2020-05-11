@@ -44,6 +44,8 @@ namespace DigitalLibrary.Client.ViewModels
 				Components.Add(new SearchViewModel(_token, new PostsContext(), OnSearchFinished,  new Dictionary<string, string>(parameters)));
 			else if (command == "uploadpost")
 				Components.Add(new UploadPostViewModel(Token, OnUploadPostFinish));
+			else if (command == "library")
+				Components.Add(new LibraryViewModel(_token, new PostsContext(), OnSearchFinished));
 			else
 				Components.Add(new CommandInputViewModel {UserName = UserName});
 		}

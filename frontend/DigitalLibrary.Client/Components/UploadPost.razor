@@ -72,7 +72,7 @@ else
             <div>
                 @{var index = i; }
 
-                <p>@DataContext.Files[i].Name</p> <a class="delete_button" @onclick="@(() => DeleteFile(index))">Delete</a>
+                <p>@DataContext.Files[i].Name</p> <a style="display: inline" class="delete_button" @onclick="@(() => DeleteFile(index))">Delete</a>
             </div>
         }
     }

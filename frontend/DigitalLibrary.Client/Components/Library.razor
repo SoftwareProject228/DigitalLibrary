@@ -1,0 +1,89 @@
+﻿@using DigitalLibrary.Client.ViewModels
+@using System.ComponentModel
+@using System.Collections.Specialized
+@namespace DigitalLibrary.Client.Components
+
+@foreach (var (id, post) in DataContext.Context.Posts)
+{
+    <div>
+        <span class="command">&nbsp;&nbsp;#@id&nbsp;@post.Title</span>
+    </div>
+}
+@if (DataContext.CurrentlyOpened != null)
+{
+    <div>
+        <span class="command">&nbsp;&nbsp;@DataContext.CurrentlyOpened.Title</span>
+    </div>
+    <div>
+        <span class="command">&nbsp;&nbsp;@DataContext.CurrentlyOpened.ContentText</span>
+    </div>
+    <div>
+        <span class="command">Files:</span>
+    </div>
+    foreach (var file in DataContext.CurrentlyOpened.AttachedFiles)
+    {
+        <div>
+            <span class="command">&nbsp;&nbsp;@file.FileName @(file.Lenght)B</span>
+        </div>
+    }
+
+
+}
+@if (!DataContext.IsClosed)
+{
+    <div>
+        <span class="command">
+            @DataContext.UserName:/$
+            <input id="command" type="text" @bind:event="oninput" @bind="Command" @onkeypress="OnKeyPress" />
+        </span>
+    </div>
+}
+
+@code {
+
+    private string Command { get; set; }
+
+    protected override void OnInitialized()
+    {
+        DataContext.Context.PropertyChanged -= ContextOnPropertyChanged;
+        DataContext.Context.PropertyChanged += ContextOnPropertyChanged;
+        DataContext.Context.Posts.CollectionChanged -= PostsOnCollectionChanged;
+        DataContext.Context.Posts.CollectionChanged += PostsOnCollectionChanged;
+    }
+
+    private void PostsOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+    {
+        StateHasChanged();
+    }
+
+    private void ContextOnPropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        StateHasChanged();
+    }
+
+
+    [Parameter]
+    public LibraryViewModel DataContext { get; set; }
+
+    private void OnKeyPress(KeyboardEventArgs arg)
+    {
+        if (String.IsNullOrWhiteSpace(Command)) return;
+        if (arg.Key != "Enter") return;
+
+        var parameters = Command.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        var command = parameters[0];
+        var commandArgs = new Dictionary<string, string>();
+        for (var i = 1; i < parameters.Length - 1; i += 2)
+        {
+            if (parameters[i][0] != '-')
+            {
+                commandArgs = null;
+                break;
+            }
+            commandArgs[parameters[i]] = parameters[i + 1];
+        }
+        Command = "";
+        DataContext.ExecuteCommand(command, commandArgs);
+    }
+
+}
