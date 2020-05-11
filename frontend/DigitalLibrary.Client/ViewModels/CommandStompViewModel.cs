@@ -8,6 +8,8 @@ namespace DigitalLibrary.Client.ViewModels
 	{
 		public string CommandText { get; set; }
 
+		public string UserName { get; set; }
+
 		public ItemType Type { get; } = ItemType.CommandStomp;
 
 		public event PropertyChangedEventHandler PropertyChanged;

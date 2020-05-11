@@ -4,7 +4,7 @@
 @inject IJSRuntime JsRuntime
 
 <div>
-    <span class="command">@UserName:/$
+    <span class="command">@DataContext.UserName:/$
         <input id="command" type="text" @bind:event="oninput" @bind="DataContext.Command" @onkeypress="OnKeyPress"/>
     </span>
 </div>

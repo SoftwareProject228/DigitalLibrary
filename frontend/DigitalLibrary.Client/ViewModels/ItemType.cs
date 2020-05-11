@@ -3,6 +3,8 @@
 	public enum ItemType
 	{
 		CommandItem,
-		CommandStomp
+		CommandStomp,
+		CommandSearch,
+		UploadPost
 	}
 }

@@ -1,6 +1,7 @@
 ﻿@using DigitalLibrary.Client.ViewModels
 @inject IJSRuntime JsRuntime
 @inject NavigationManager NavigationManager
+@inject UserAuthorizationViewModel ViewModel
 
 @page "/login"
 
@@ -15,6 +16,13 @@
 </div>
 
 @code {
+    protected override async void OnInitialized()
+    {
+        var success = await ViewModel.RestoreAuthorization();
+        if (success)
+            NavigationManager.NavigateTo("/");
+    }
+
     private string UserLogin { get; set; }
 
     private string UserPassword { get; set; }
@@ -27,7 +35,7 @@
     {
         if (args.Key != "Enter") return;
         Loading = "";
-        await UserAuthorizationViewModel.AuthorizeAsync(UserLogin, UserPassword);
+        await ViewModel.AuthorizeAsync(UserLogin, UserPassword);
         NavigationManager.NavigateTo("/");
     }
 

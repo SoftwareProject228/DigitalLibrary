@@ -8,7 +8,30 @@ namespace DigitalLibrary.Client.ViewModels
 	{
 		public ItemType Type { get; } = ItemType.CommandItem;
 
-		public string Command { get; set; }
+		private string _command;
+		private string _userName;
+
+		public string Command
+		{
+			get => _command;
+			set
+			{
+				if (_command == value) return;
+				_command = value;
+				OnPropertyChanged();
+			}
+		}
+
+		public string UserName
+		{
+			get => _userName;
+			set
+			{
+				if (_userName == value) return;
+				_userName = value;
+				OnPropertyChanged();
+			}
+		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
 

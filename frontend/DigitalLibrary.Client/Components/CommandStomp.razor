@@ -1,12 +1,12 @@
-﻿@namespace DigitalLibrary.Client.Components
+﻿@using DigitalLibrary.Client.ViewModels
+@namespace DigitalLibrary.Client.Components
 <div>
-    <span class="command">@UserName:/$&nbsp;@CommandText</span>
+    <span class="command">@DataContext.UserName:/$&nbsp;@DataContext.CommandText</span>
 </div>
 
 @code {
-    [Parameter]
-    public string UserName { get; set; }
 
     [Parameter]
-    public string CommandText { get; set; }
+    public CommandStompViewModel DataContext { get; set; }
+
 }

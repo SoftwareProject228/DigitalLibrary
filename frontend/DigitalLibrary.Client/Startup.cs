@@ -1,16 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using DigitalLibrary.Client.Data;
 using DigitalLibrary.Client.ViewModels;
 
 namespace DigitalLibrary.Client
@@ -32,6 +24,7 @@ namespace DigitalLibrary.Client
 			services.AddServerSideBlazor();
 			services.AddProtectedBrowserStorage();
 			services.AddScoped<UserAuthorizationViewModel>();
+			services.AddScoped<IndexViewModel>();
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

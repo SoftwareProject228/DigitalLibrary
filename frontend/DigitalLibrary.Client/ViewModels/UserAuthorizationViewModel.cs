@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -76,6 +77,26 @@ namespace DigitalLibrary.Client.ViewModels
 			UserName = null;
 			Token = null;
 			await _storage.DeleteAsync("token");
+		}
+
+		public async Task<bool> RestoreAuthorization()
+		{
+			var token = await _storage.GetAsync<string>("token");
+			if (String.IsNullOrWhiteSpace(token))
+				return false;
+			var client = new HttpClient();
+			var response = await client.GetAsync($"https://localhost:44355/api/auth/getUser?token={token}");
+			if (!response.IsSuccessStatusCode)
+			{
+				await _storage.DeleteAsync("token");
+				return false;
+			}
+
+			var result = JsonConvert.DeserializeObject<UserPayload>(await response.Content.ReadAsStringAsync());
+			Token = result.Token;
+			UserName = result.UserName;
+			UserRole = result.UserRole;
+			return true;
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;

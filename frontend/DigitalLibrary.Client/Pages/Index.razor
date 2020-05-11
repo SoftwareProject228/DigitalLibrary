@@ -6,7 +6,7 @@
 @inject IJSRuntime JsRuntime
 
 <section class="sect">
-    <p>Welcome to the digital library, @UserAuthorizationViewModel.UserName. Here you can see your materials.</p>
+    <p>Welcome to the digital library, @(String.IsNullOrWhiteSpace(ViewModel.UserName) ? "Unknown user" : ViewModel.UserName). Here you can see your materials.</p>
     <p><span>Type 'help' + <kbd>Enter</kbd> -- for available commands.</span></p>
 </section>
 
@@ -16,11 +16,19 @@
     {
         if (component.Type == ItemType.CommandItem)
         {
-            <CommandInput OnCommand="@OnCommand" UserName="@UserAuthorizationViewModel.UserName"/>
+            <CommandInput OnCommand="@OnCommand" DataContext="(CommandInputViewModel)component"/>
         }
         else if (component.Type == ItemType.CommandStomp)
         {
-            <CommandStomp CommandText="@(((CommandStompViewModel)component).CommandText)" UserName="@UserAuthorizationViewModel.UserName"/>
+            <CommandStomp DataContext="(CommandStompViewModel)component"/>
+        }
+        else if (component.Type == ItemType.CommandSearch)
+        {
+            <Search DataContext="(SearchViewModel)component"/>
+        }
+        else if (component.Type == ItemType.UploadPost)
+        {
+            <UploadPost DataContext="(UploadPostViewModel)component"/>
         }
     }
 
@@ -30,12 +38,13 @@
 {
     protected override void OnInitialized()
     {
-        if (String.IsNullOrWhiteSpace(UserAuthorizationViewModel.Token))
+        if (String.IsNullOrWhiteSpace(ViewModel.UserName))
             NavigationManager.NavigateTo("/login");
         else
         {
             ViewModel.Components.CollectionChanged -= ComponentsOnChanged;
             ViewModel.Components.CollectionChanged += ComponentsOnChanged;
+            ViewModel.InitializeComponents();
         }
     }
 
@@ -46,16 +55,9 @@
 
     private async void OnCommand(string command, IDictionary<string, string> parameters)
     {
-        var commandText = command;
-        foreach (var parameter in parameters)
-        {
-            commandText += ' ' + parameter.Key + ' ' + parameter.Value;
-        }
-        _components.RemoveAt(_components.Count - 1);
-        _components.Add(new CommandStompViewModel {CommandText = commandText});
-        _components.Add(new CommandInputViewModel());
+        ViewModel.ExecuteCommand(command, parameters);
+        await JsRuntime.InvokeVoidAsync("focusElement", "command");
+        await JsRuntime.InvokeVoidAsync("focusElement", "command");
         StateHasChanged();
-        await JsRuntime.InvokeVoidAsync("focusElement", "command");
-        await JsRuntime.InvokeVoidAsync("focusElement", "command");
     }
 }

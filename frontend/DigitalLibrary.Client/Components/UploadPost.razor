@@ -1,0 +1,167 @@
+﻿@using DigitalLibrary.Client.ViewModels
+@using BlazorInputFile
+@using System.ComponentModel
+@using System.Collections.Specialized
+
+@if (DataContext.EnteringTitle)
+{
+    <div>
+        <span class="command">
+            Enter the title of post:/$
+            <input id="command" type="text" @bind:event="oninput" @bind="DataContext.Title" @onkeypress="OnKeyPress" />
+        </span>
+    </div>
+}
+else
+{
+    <div>
+        <span class="command">Title:/$&nbsp;@DataContext.Title</span>
+    </div>
+}
+@if (DataContext.EnteringDescription)
+{
+    <div>
+        <span class="command">
+            Enter the description of post:/$
+            <input id="command" type="text" @bind:event="oninput" @bind="DataContext.Description" @onkeypress="OnKeyPress" />
+        </span>
+    </div>
+}
+else
+{
+    @if (!String.IsNullOrWhiteSpace(DataContext.Description))
+    {
+        <div>
+            <span class="command">Description:/$&nbsp;@DataContext.Description</span>
+        </div>
+    }
+}
+@if (DataContext.EnteringTag)
+{
+    <div>
+        <span class="command">
+            Enter the tag of post:/$
+            <input id="command" type="text" @bind:event="oninput" @bind="DataContext.Tag" @onkeypress="OnKeyPress" />
+        </span>
+    </div>
+}
+else
+{
+    if (!String.IsNullOrWhiteSpace(DataContext.Tag))
+    {
+        <div>
+            <span class="command">Tag:/$&nbsp;@DataContext.Title</span>
+        </div>
+    }
+}
+@if (DataContext.EnteringFile)
+{
+    <div>
+        <span class="command">
+            Press the button to add files:/$
+            <InputFile OnChange="OnFileUpload" />
+        </span>
+    </div>
+    @if (DataContext.Files.Count != 0)
+    {
+        <div>
+            <span class="command">Files:</span>
+        </div>
+        @for (var i = 0; i < DataContext.Files.Count; ++i)
+        {
+            <div>
+                @{var index = i; }
+
+                <p>@DataContext.Files[i].Name</p> <a class="delete_button" @onclick="@(() => DeleteFile(index))">Delete</a>
+            </div>
+        }
+    }
+    <div>
+        <a class="delete_button" @onclick="OnUpload">Upload</a>
+    </div>
+}
+else
+{
+    @if (DataContext.Files.Count != 0)
+    {
+        <div>
+            <span class="command">Files:</span>
+        </div>
+        @for (var i = 0; i < DataContext.Files.Count; ++i)
+        {
+            <div>
+                @{var index = i; }
+
+                <p>@DataContext.Files[i].Name</p>
+            </div>
+        }
+    }
+}
+
+
+
+@code {
+
+    private void DeleteFile(int index)
+    {
+        DataContext.Files.RemoveAt(index);
+    }
+
+    protected override void OnInitialized()
+    {
+        DataContext.Files.CollectionChanged -= FilesOnCollectionChanged;
+        DataContext.Files.CollectionChanged += FilesOnCollectionChanged;
+        DataContext.PropertyChanged -= DataContextOnPropertyChanged;
+        DataContext.PropertyChanged += DataContextOnPropertyChanged;
+    }
+
+    private void FilesOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+    {
+        StateHasChanged();
+    }
+
+    private void DataContextOnPropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        StateHasChanged();
+    }
+
+    [Parameter]
+    public UploadPostViewModel DataContext { get; set; }
+
+    private void OnKeyPress(KeyboardEventArgs args)
+    {
+        if (DataContext.EnteringTitle)
+        {
+            if (String.IsNullOrWhiteSpace(DataContext.Title) || args.Key != "Enter") return;
+            DataContext.EnteringTitle = false;
+            DataContext.EnteringDescription = true;
+        }
+        else if (DataContext.EnteringDescription)
+        {
+            if (String.IsNullOrWhiteSpace(DataContext.Description) || args.Key != "Enter") return;
+            DataContext.EnteringDescription = false;
+            DataContext.EnteringTag = true;
+        }
+        else if (DataContext.EnteringTag)
+        {
+            if (String.IsNullOrWhiteSpace(DataContext.Tag) || args.Key != "Enter") return;
+            DataContext.EnteringTag = false;
+            DataContext.EnteringFile = true;
+        }
+    }
+
+    private void OnFileUpload(IFileListEntry[] args)
+    {
+        foreach (var file in args)
+        {
+            DataContext.Files.Add(file);
+        }
+    }
+
+    private void OnUpload()
+    {
+        DataContext.EnteringFile = false;
+        DataContext.Upload();
+    }
+
+}
