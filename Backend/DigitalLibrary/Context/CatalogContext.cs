@@ -86,5 +86,13 @@ namespace DigitalLibrary.Context
 			var result = await collection.FindAsync(filter);
 			return result.ToList();
 		}
+
+		public static async Task<IEnumerable<CatalogNode>> SearchForUserAsync(string userId)
+		{
+			var result =
+				await CollectionRaw.FindAsync(new BsonDocument("Publisher._id",
+					new BsonObjectId(new ObjectId(userId))));
+			return result.ToList();
+		}
 	}
 }
