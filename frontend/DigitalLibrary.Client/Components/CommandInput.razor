@@ -1,29 +1,28 @@
 ﻿@using DigitalLibrary.Client.Components.Handlers
+@using DigitalLibrary.Client.ViewModels
 @namespace DigitalLibrary.Client.Components
 @inject IJSRuntime JsRuntime
 
 <div>
     <span class="command">@UserName:/$
-        <input id="command" type="text" @bind:event="oninput" @bind="Input" @onkeypress="OnKeyPress"/>
+        <input id="command" type="text" @bind:event="oninput" @bind="DataContext.Command" @onkeypress="OnKeyPress"/>
     </span>
 </div>
 
 @code {
 
     [Parameter]
-    public string UserName { get; set; }
+    public CommandInputViewModel DataContext { get; set; }
 
     [Parameter]
     public CommandEventHandler OnCommand { get; set; }
 
-    public string Input { get; set; }
-
     private void OnKeyPress(KeyboardEventArgs args)
     {
         if (args.Key != "Enter") return;
-        if (String.IsNullOrWhiteSpace(Input)) return;
+        if (String.IsNullOrWhiteSpace(DataContext.Command)) return;
 
-        var parameters = Input.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+        var parameters = DataContext.Command.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
         var command = parameters[0];
         var commandArgs = new Dictionary<string, string>();
         for (var i = 1; i < parameters.Length - 1; i += 2)

@@ -8,8 +8,6 @@
 
 		public string Email { get; set; }
 
-		public string AuthenticationStatus { get; set; }
-
-		public string UserStatus { get; set; }
+		public UserRole UserRole { get; set; }
 	}
 }

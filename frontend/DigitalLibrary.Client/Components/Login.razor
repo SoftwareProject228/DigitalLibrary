@@ -1,4 +1,4 @@
-﻿@using DigitalLibrary.Client.Data
+﻿@using DigitalLibrary.Client.ViewModels
 @inject IJSRuntime JsRuntime
 @inject NavigationManager NavigationManager
 
@@ -27,7 +27,7 @@
     {
         if (args.Key != "Enter") return;
         Loading = "";
-        await UserAuthorizationModel.AuthorizeAsync(UserLogin, UserPassword);
+        await UserAuthorizationViewModel.AuthorizeAsync(UserLogin, UserPassword);
         NavigationManager.NavigateTo("/");
     }
 
