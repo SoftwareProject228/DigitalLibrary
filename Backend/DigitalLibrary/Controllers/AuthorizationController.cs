@@ -74,6 +74,45 @@ namespace DigitalLibrary.Controllers
 	    }
 
 	    [HttpGet]
+	    public async Task<IActionResult> GetUser(string token)
+	    {
+		    if (String.IsNullOrWhiteSpace(token))
+			    return BadRequest(new ErrorResponse
+			    {
+				    ErrorCode = ErrorCodes.MissingSomeArguments,
+				    ErrorMessage = "Miising argument: token",
+				    RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "getUser") })
+			    });
+
+		    var validation = await UserWebTokenFactory.CheckTokenValidationAsync(token);
+		    if (validation == null || validation.Validation == UserWebToken.TokenValidation.Invalid)
+			    return BadRequest(new ErrorResponse
+			    {
+				    ErrorCode = ErrorCodes.InvalidToken,
+				    ErrorMessage = "Invalid authentication token",
+				    RequestParameters = new Dictionary<string, string>(new[]
+				    {
+					    new KeyValuePair<string, string>("method", "getUser"),
+				    })
+			    });
+		    if (validation.Validation == UserWebToken.TokenValidation.Expired)
+			    return BadRequest(new ErrorResponse
+			    {
+				    ErrorCode = ErrorCodes.TokenExpired,
+				    ErrorMessage = "Token expired. Relogin required",
+				    RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "getUser") })
+			    });
+
+		    return Ok(new UserAuthenticationResponse
+		    {
+			    Token = token,
+			    Email = validation.User.Email,
+			    UserRole = validation.User.Status,
+			    UserName = validation.User.UserName
+		    });
+	    }
+
+		[HttpGet]
 	    public IActionResult Logout(string token)
 	    {
 		    if (String.IsNullOrWhiteSpace(token))
