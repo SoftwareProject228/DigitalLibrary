@@ -316,5 +316,35 @@ namespace DigitalLibrary.Controllers
 		    return Ok(posts);
 	    }
 
+	    [HttpGet]
+	    public async Task<IActionResult> SearchForUser(string token)
+	    {
+		    if (String.IsNullOrWhiteSpace(token))
+			    return BadRequest(new ErrorResponse
+			    {
+				    ErrorCode = ErrorCodes.MissingSomeArguments,
+				    ErrorMessage = "Missing argument: token",
+				    RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "searchForUser") })
+			    });
+
+		    var validation = await UserWebTokenFactory.CheckTokenValidationAsync(token);
+		    if (validation == null || validation.Validation == UserWebToken.TokenValidation.Invalid)
+			    return BadRequest(new ErrorResponse
+			    {
+				    ErrorCode = ErrorCodes.InvalidToken,
+				    ErrorMessage = "Invalid token",
+				    RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "searchForUser") })
+			    });
+		    if (validation.Validation == UserWebToken.TokenValidation.Expired)
+			    return BadRequest(new ErrorResponse
+			    {
+				    ErrorCode = ErrorCodes.TokenExpired,
+				    ErrorMessage = "Token expired. Relogin required",
+				    RequestParameters = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>("method", "searchForUser") })
+			    });
+
+		    var posts = await CatalogContext.SearchForUserAsync(validation.User.Id);
+		    return Ok(posts);
+	    }
 	}
 }
